@@ -12,9 +12,50 @@ impl Parser {
 
     pub fn parse(&mut self) -> Result<Expr, &'static str> {
         self.list()
+            .or({self.rewind(); self.lambda()})
     }
 
-    pub fn list(&mut self) -> Result<Expr, &'static str> {
+    fn lambda(&mut self) -> Result<Expr, &'static str> {
+        if self.match_token(vec![TokenType::LParen]) {
+            let lambda = self.expect(TokenType::Lambda, "expecting lambda");
+            if lambda.is_err() { return Err(lambda.unwrap_err()); }
+
+            let formals = self.formals();
+            if formals.is_err() { return Err(formals.unwrap_err()); }
+
+            let body = self.list().or(self.simple_datum());
+            if body.is_err() { return Err(body.unwrap_err()); }
+
+            return Ok(Expr::Lambda(formals.unwrap(), Box::new(body.unwrap())));
+        }
+
+        return Err("expecting lambda expression");
+    }
+
+    fn formals(&mut self) -> Result<Vec<Expr>, &'static str> {
+        let mut vars = Vec::new();
+        let lparen = self.expect(TokenType::LParen, "expecting left paren");
+        if lparen.is_err() { return Err(lparen.unwrap_err()); }
+        loop {
+            if self.match_token(vec![TokenType::RParen]) { break; }
+
+            let var = self.variable();
+            if var.is_err() { return Err(var.unwrap_err()) }
+            vars.push(var.unwrap())
+        }
+
+        return Ok(vars);
+    }
+
+    fn variable(&mut self) -> Result<Expr, &'static str> {
+        if self.match_token(vec![TokenType::Identifier]) {
+            Ok(Expr::Var(self.previous()))
+        } else {
+            Err("expecting variable")
+        }
+    }
+
+    fn list(&mut self) -> Result<Expr, &'static str> {
         if self.match_token(vec![TokenType::LParen]) {
             let mut lexprs = Vec::new();
 
@@ -29,6 +70,7 @@ impl Parser {
                 if datum.is_err() { return Err(datum.unwrap_err()); }
                 lexprs.push(datum.unwrap());
 
+                // Dotted Pair
                 if self.match_token(vec![TokenType::Dot]) {
                     let rexpr = self.simple_datum();
                     let rparen = self.expect(TokenType::RParen, "expecting right paren");
@@ -37,6 +79,7 @@ impl Parser {
 
                     return Ok(Expr::DottedPair(lexprs, Box::new(rexpr.unwrap())));
 
+                // List
                 } else if self.match_token(vec![TokenType::RParen]) {
                     return Ok(Expr::List(lexprs));
                 }
@@ -104,5 +147,9 @@ impl Parser {
 
     fn previous(&mut self) -> Token {
         self.tokens[self.current - 1].clone()
+    }
+
+    fn rewind(&mut self) {
+        self.current -= 1;
     }
 }

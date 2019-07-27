@@ -11,6 +11,11 @@ fn main() {
         let mut lexer = Lexer::new(&line);
         lexer.scan();
         let mut parser = Parser::new(lexer.tokens);
-        println!("{:?}", parser.parse());
+        let result = parser.parse();
+        if result.is_ok() {
+            println!("{}", result.unwrap());
+        } else {
+            println!("{}", result.unwrap_err());
+        }
     }
 }

@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TokenType {
     LParen,
@@ -42,6 +44,12 @@ impl Token {
     }
 }
 
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.lexeme)
+    }
+}
+
 #[derive(Debug)]
 pub enum Expr {
     DottedPair(Vec<Expr>, Box<Expr>),
@@ -49,4 +57,16 @@ pub enum Expr {
     Lambda(Vec<Expr>, Box<Expr>),
     Var(Token),
     Literal(Token),
+}
+
+impl fmt::Display for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Expr::DottedPair(lexpr, rexpr) => write!(f, "({:?} . {})", lexpr, rexpr),
+            Expr::List(lexpr) => write!(f, "({:?})", lexpr),
+            Expr::Lambda(vars, body) => write!(f, "(lambda ({:?}) {})", vars, body),
+            Expr::Var(t) => write!(f, "{}", t.lexeme),
+            Expr::Literal(t) => write!(f, "{}", t.lexeme),
+        }
+    }
 }
