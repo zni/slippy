@@ -47,6 +47,13 @@ impl Lexer {
             ')' => self.add_token(TokenType::RParen),
             '.' => self.add_token(TokenType::Dot),
             ' ' => (),
+            '#' => {
+                if self.match_char('t') {
+                    return self.add_literal_token(TokenType::Bool, Some(Literal::Bool(true)));
+                } else if self.match_char('f') {
+                    return self.add_literal_token(TokenType::Bool, Some(Literal::Bool(false)));
+                }
+            },
             '\t' => (),
             '\r' => (),
             '\n' => self.line += 1,
@@ -157,6 +164,19 @@ impl Lexer {
         }
 
         self.source[self.current]
+    }
+
+    fn match_char(&mut self, expected: char) -> bool {
+        if self.is_at_end() {
+            return false;
+        }
+
+        if self.source[self.current] != expected {
+            return false;
+        }
+
+        self.current += 1;
+        true
     }
 
     fn add_token(&mut self, token: TokenType) {

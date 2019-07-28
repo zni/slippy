@@ -15,6 +15,11 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expr, &'static str> {
+        let constant = self.constant();
+        if constant.is_ok() {
+            return constant;
+        }
+
         let variable = self.variable();
         if variable.is_ok() {
             return variable;
@@ -132,12 +137,24 @@ impl Parser {
     }
 
     fn simple_datum(&mut self) -> Result<Expr, &'static str> {
-        if self.match_token(vec![TokenType::Number, TokenType::Float]) {
+        if self.match_token(vec![TokenType::Number,
+                                 TokenType::Float,
+                                 TokenType::Bool]) {
             Ok(Expr::Literal(self.previous()))
         } else if self.match_token(vec![TokenType::Identifier]) {
             Ok(Expr::Var(self.previous()))
         } else {
-            Err("expecting number, float, or identifier")
+            Err("expecting number, float, boolean, or identifier")
+        }
+    }
+
+    fn constant(&mut self) -> Result<Expr, &'static str> {
+        if self.match_token(vec![TokenType::Number,
+                                 TokenType::Float,
+                                 TokenType::Bool]) {
+            Ok(Expr::Literal(self.previous()))
+        } else {
+            Err("expecting number, float, or boolean")
         }
     }
 

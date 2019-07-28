@@ -9,6 +9,7 @@ pub enum TokenType {
     Star,
     Slash,
     Dot,
+    Bool,
     Number,
     Float,
     Identifier,
@@ -25,6 +26,7 @@ pub enum TokenType {
 pub enum Literal {
     Float(f64),
     Number(i32),
+    Bool(bool),
 }
 
 #[derive(Clone, Debug)]
