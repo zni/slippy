@@ -1,7 +1,7 @@
 use crate::ast::{Token, TokenType, Literal, Expr};
 
 pub struct Parser {
-    current: usize,
+    pub current: usize,
     tokens: Vec<Token>
 }
 
@@ -11,25 +11,63 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Result<Expr, &'static str> {
-        self.list()
-            .or({self.rewind(); self.lambda()})
+        self.expression()
     }
 
-    fn lambda(&mut self) -> Result<Expr, &'static str> {
-        if self.match_token(vec![TokenType::LParen]) {
-            let lambda = self.expect(TokenType::Lambda, "expecting lambda");
-            if lambda.is_err() { return Err(lambda.unwrap_err()); }
+    fn expression(&mut self) -> Result<Expr, &'static str> {
+        let variable = self.variable();
+        if variable.is_ok() {
+            return variable;
+        }
 
+        if !self.match_token(vec![TokenType::LParen]) {
+            return Err("expecting left paren");
+        }
+
+        // Quote
+        if self.match_token(vec![TokenType::Quote]) {
+            let datum = self.datum();
+
+            if datum.is_ok() && self.check(TokenType::RParen) {
+                self.advance();
+                return Ok(Expr::Quote(Box::new(datum.unwrap())));
+            }
+
+        // Lambda
+        } else if self.match_token(vec![TokenType::Lambda]) {
             let formals = self.formals();
             if formals.is_err() { return Err(formals.unwrap_err()); }
 
-            let body = self.list().or(self.simple_datum());
+            let body = self.datum();
             if body.is_err() { return Err(body.unwrap_err()); }
 
-            return Ok(Expr::Lambda(formals.unwrap(), Box::new(body.unwrap())));
+            if self.check(TokenType::RParen) {
+                self.advance();
+                return Ok(Expr::Lambda(formals.unwrap(),
+                                       Box::new(body.unwrap())));
+            }
+
+        // Application
+        } else {
+            let exp = self.expression();
+            if exp.is_err() { return Err(exp.unwrap_err()); }
+
+            let mut operands = Vec::new();
+            while !self.check(TokenType::RParen) {
+                let op = self.expression();
+                if op.is_err() { return Err(op.unwrap_err()); }
+
+                operands.push(op.unwrap());
+            }
+            self.advance();
+            return Ok(Expr::App(Box::new(exp.unwrap()), operands));
         }
 
-        return Err("expecting lambda expression");
+        if !self.match_token(vec![TokenType::RParen]) {
+            return Err("expecting right paren");
+        }
+
+        Err("expecting expression")
     }
 
     fn formals(&mut self) -> Result<Vec<Expr>, &'static str> {
@@ -44,7 +82,7 @@ impl Parser {
             vars.push(var.unwrap())
         }
 
-        return Ok(vars);
+        Ok(vars)
     }
 
     fn variable(&mut self) -> Result<Expr, &'static str> {
@@ -53,6 +91,10 @@ impl Parser {
         } else {
             Err("expecting variable")
         }
+    }
+
+    fn datum(&mut self) -> Result<Expr, &'static str> {
+        self.list().or(self.simple_datum())
     }
 
     fn list(&mut self) -> Result<Expr, &'static str> {
@@ -66,13 +108,13 @@ impl Parser {
             }
 
             loop {
-                let datum = self.simple_datum();
+                let datum = self.datum();
                 if datum.is_err() { return Err(datum.unwrap_err()); }
                 lexprs.push(datum.unwrap());
 
                 // Dotted Pair
                 if self.match_token(vec![TokenType::Dot]) {
-                    let rexpr = self.simple_datum();
+                    let rexpr = self.datum();
                     let rparen = self.expect(TokenType::RParen, "expecting right paren");
                     if rexpr.is_err() { return Err(rexpr.unwrap_err()); }
                     if rparen.is_err() { return Err(rparen.unwrap_err()); }
@@ -84,9 +126,9 @@ impl Parser {
                     return Ok(Expr::List(lexprs));
                 }
             }
-        } else {
-            Err("expecting a list")
         }
+
+        Err("expecting a list")
     }
 
     fn simple_datum(&mut self) -> Result<Expr, &'static str> {
@@ -150,6 +192,8 @@ impl Parser {
     }
 
     fn rewind(&mut self) {
-        self.current -= 1;
+        if self.current != 0 {
+            self.current -= 1;
+        }
     }
 }
