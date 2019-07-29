@@ -11,9 +11,9 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Result<Expr, &'static str> {
-        self.expression()
+        self.datum()
     }
-
+/*
     fn expression(&mut self) -> Result<Expr, &'static str> {
         let constant = self.constant();
         if constant.is_ok() {
@@ -97,9 +97,17 @@ impl Parser {
             Err("expecting variable")
         }
     }
+    */
 
     fn datum(&mut self) -> Result<Expr, &'static str> {
-        self.list().or(self.simple_datum())
+
+        // self.list().or({println!("fallback to datum"); self.simple_datum()})
+        let simple_datum = self.simple_datum();
+        if simple_datum.is_ok() {
+            return simple_datum;
+        }
+
+        self.list()
     }
 
     fn list(&mut self) -> Result<Expr, &'static str> {
@@ -140,14 +148,14 @@ impl Parser {
         if self.match_token(vec![TokenType::Number,
                                  TokenType::Float,
                                  TokenType::Bool]) {
-            Ok(Expr::Literal(self.previous()))
+            Ok(Expr::Literal(self.previous().literal.unwrap()))
         } else if self.match_token(vec![TokenType::Identifier]) {
-            Ok(Expr::Var(self.previous()))
+            Ok(Expr::Var(self.previous().lexeme))
         } else {
             Err("expecting number, float, boolean, or identifier")
         }
     }
-
+/*
     fn constant(&mut self) -> Result<Expr, &'static str> {
         if self.match_token(vec![TokenType::Number,
                                  TokenType::Float,
@@ -157,6 +165,7 @@ impl Parser {
             Err("expecting number, float, or boolean")
         }
     }
+    */
 
     fn match_token(&mut self, tokens: Vec<TokenType>) -> bool {
         for token in tokens {

@@ -13,12 +13,12 @@ pub struct Lexer {
 impl Lexer {
     pub fn new(block: &str) -> Lexer {
         let mut reserved = HashMap::new();
-        reserved.insert("lambda", TokenType::Lambda);
-        reserved.insert("if", TokenType::If);
-        reserved.insert("cond", TokenType::Cond);
-        reserved.insert("quote", TokenType::Quote);
-        reserved.insert("begin", TokenType::Begin);
-        reserved.insert("set!", TokenType::Set);
+        //reserved.insert("lambda", TokenType::Lambda);
+        //reserved.insert("if", TokenType::If);
+        //reserved.insert("cond", TokenType::Cond);
+        //reserved.insert("quote", TokenType::Quote);
+        //reserved.insert("begin", TokenType::Begin);
+        //reserved.insert("set!", TokenType::Set);
 
         let source: Vec<char> = block.chars().collect();
         Lexer {

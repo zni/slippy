@@ -22,7 +22,7 @@ pub enum TokenType {
     EOF,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Literal {
     Float(f64),
     Number(i32),
@@ -52,15 +52,16 @@ impl fmt::Display for Token {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
     DottedPair(Vec<Expr>, Box<Expr>),
     List(Vec<Expr>),
     Lambda(Vec<Expr>, Box<Expr>),
-    Var(Token),
-    Literal(Token),
+    Var(String),
+    Literal(Literal),
     Quote(Box<Expr>),
     App(Box<Expr>, Vec<Expr>),
+    Nil,
 }
 
 impl fmt::Display for Expr {
@@ -88,10 +89,11 @@ impl fmt::Display for Expr {
                 write!(f, ") ").unwrap();
                 write!(f, "{})", body)
             },
-            Expr::Var(t) => write!(f, "{}", t.lexeme),
-            Expr::Literal(t) => write!(f, "{}", t.lexeme),
+            Expr::Var(t) => write!(f, "{}", t),
+            Expr::Literal(t) => write!(f, "{:?}", t),
             Expr::Quote(t) => write!(f, "(quote {})", t),
             Expr::App(e, op) => write!(f, "(app {} {:?})", e, op),
+            Expr::Nil => write!(f, "()"),
         }
     }
 }
