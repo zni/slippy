@@ -10,7 +10,7 @@ fn main() {
     let mut rl = Editor::<()>::new();
     let mut eval = Eval::new();
     loop {
-        let readline = rl.readline("slippy > ");
+        let readline = rl.readline("slippy> ");
         match readline {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
@@ -26,7 +26,6 @@ fn main() {
                     } else {
                         println!("{}", eval_result.unwrap_err());
                     }
-                    println!("{:?}", eval.env);
                 } else {
                     println!("{}", result.unwrap_err());
                     println!("pos: {}", parser.current);

@@ -56,7 +56,7 @@ impl fmt::Display for Token {
 pub enum Expr {
     DottedPair(Vec<Expr>, Box<Expr>),
     List(Vec<Expr>),
-    Lambda(Vec<Expr>, Box<Expr>),
+    Lambda(Vec<Expr>, Vec<Expr>),
     Var(String),
     Literal(Literal),
     Quote(Box<Expr>),
@@ -87,7 +87,7 @@ impl fmt::Display for Expr {
                     write!(f, " {} ", v).unwrap();
                 }
                 write!(f, ") ").unwrap();
-                write!(f, "{})", body)
+                write!(f, "{:?})", body)
             },
             Expr::Var(t) => write!(f, "{}", t),
             Expr::Literal(t) => write!(f, "{:?}", t),

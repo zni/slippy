@@ -48,8 +48,8 @@ impl Eval {
 
         let head = &form[0];
         match head {
-            Expr::Var(t) => {
-                match t.as_str() {
+            Expr::Var(atom) => {
+                match atom.as_str() {
                     "define" => {
                         return self.define(form);
                     },
@@ -60,7 +60,7 @@ impl Eval {
                         return self.lambda(form);
                     }
                     _ => {
-                        let var = self.env.get(&t.clone());
+                        let var = self.env.get(&atom.clone());
                         match var {
                             Some(val) => self.apply(val.clone(), &form[1..form.len()]),
                             None => {
@@ -70,9 +70,16 @@ impl Eval {
                     }
                 }
             },
-            Expr::Literal(l) => {
+            Expr::Literal(_) => {
                 return Err("literal is not applicable");
             },
+            Expr::List(list) => {
+                let result = self.eval_list(list.to_vec());
+                if result.is_err() { return result; }
+
+                let args = &form[1..form.len()];
+                return self.apply(result.unwrap(), args);
+            }
             _ => Err("not implemented"),
         }
     }
@@ -83,13 +90,13 @@ impl Eval {
         }
 
         let var = &form[1];
-        if let Expr::Var(t) = var {
+        if let Expr::Var(atom) = var {
             let val = self.eval(form[2].clone());
             if val.is_err() {
                 return Err(val.unwrap_err());
             }
-            self.env.insert(t.clone(), val.unwrap());
-            Ok(Expr::Var(t.to_string()))
+            self.env.insert(atom.clone(), val.unwrap());
+            Ok(Expr::Var(atom.to_string()))
         } else {
             Err("define second argument must be a variable")
         }
@@ -114,17 +121,17 @@ impl Eval {
     }
 
     fn lambda(&mut self, form: Vec<Expr>) -> Result<Expr, &'static str> {
-        if form.len() != 3 {
+        let body = &form[2..form.len()];
+        if body.is_empty() {
             return Err("invalid lambda form");
         }
 
-        let body = form[2].clone();
         match &form[1] {
             Expr::List(args) => {
-                Ok(Expr::Lambda(args.clone(), Box::new(body)))
+                Ok(Expr::Lambda(args.clone(), body.to_vec()))
             },
             Expr::Var(v) => {
-                Ok(Expr::Lambda(vec![Expr::Var(v.to_string())], Box::new(body)))
+                Ok(Expr::Lambda(vec![Expr::Var(v.to_string())], body.to_vec()))
             },
             _ => {
                 Err("invalid lambda arguments")
@@ -138,17 +145,20 @@ impl Eval {
 
         match form {
             Expr::Lambda(cargs, closure) => {
-                for (c, a)in cargs.iter().zip(args) {
-                    let result = self.eval(a.clone());
+                for (carg, arg) in cargs.iter().zip(args) {
+                    let result = self.eval(arg.clone());
                     if result.is_err() { return result }
-                    if let Expr::Var(v) = c {
-                        env.insert(v.clone(), result.unwrap());
+                    if let Expr::Var(atom) = carg {
+                        env.insert(atom.clone(), result.unwrap());
                     }
                 }
 
                 let prev_env = self.env.clone();
                 self.env = env;
-                let result = self.eval(*closure);
+                let mut result = Ok(Expr::Nil);
+                for c in closure {
+                    result = self.eval(c);
+                };
                 self.env = prev_env;
                 return result;
             },
