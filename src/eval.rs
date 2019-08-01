@@ -15,6 +15,7 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
                     match atom.as_str() {
                         "lambda" => lambda(&list, env),
                         "define" => define(&list, env),
+                        "if"     => ifexpr(&list, env),
                         _ => {
                             let var = env.get(atom.to_string());
                             if var.is_none() { return Err("undefined variable"); }
@@ -96,6 +97,10 @@ fn define(list: &Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Nil)
 }
 
+fn ifexpr(list: &Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
+    Err("not implemented")
+}
+
 fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
     match proc {
         Expr::Lambda(parms, body, mut proc_env) => {
@@ -110,6 +115,9 @@ fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static st
 
             return result;
         },
+        Expr::Builtin(builtin) => {
+            builtin(&args, env)
+        }
         _ => Err("unable to apply"),
     }
 }

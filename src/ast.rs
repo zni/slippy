@@ -53,7 +53,7 @@ impl fmt::Display for Token {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum Expr {
     DottedPair(Vec<Expr>, Box<Expr>),
     List(Vec<Expr>),
@@ -61,7 +61,7 @@ pub enum Expr {
     Var(String),
     Literal(Literal),
     Quote(Box<Expr>),
-    App(Box<Expr>, Vec<Expr>),
+    Builtin(fn(&Vec<Expr>, &mut Env) -> Result<Expr, &'static str>),
     Nil,
 }
 
@@ -82,18 +82,46 @@ impl fmt::Display for Expr {
                 }
                 write!(f, ")")
             },
-            Expr::Lambda(vars, body, _) => {
-                write!(f, "(lambda (").unwrap();
-                for v in vars {
-                    write!(f, " {} ", v).unwrap();
-                }
-                write!(f, ") ").unwrap();
-                write!(f, "{:?})", body)
+            Expr::Lambda(_, _, _) => {
+                write!(f, "<procedure>")
             },
             Expr::Var(t) => write!(f, "{}", t),
             Expr::Literal(t) => write!(f, "{:?}", t),
             Expr::Quote(t) => write!(f, "(quote {})", t),
-            Expr::App(e, op) => write!(f, "(app {} {:?})", e, op),
+            Expr::Builtin(_) => {
+                write!(f, "<built-in procedure>")
+            },
+            Expr::Nil => write!(f, "()"),
+        }
+    }
+}
+
+impl fmt::Debug for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Expr::DottedPair(lexpr, rexpr) => {
+                write!(f, "(").unwrap();
+                for l in lexpr {
+                    write!(f, " {} ", l).unwrap();
+                }
+                write!(f, ". {})", rexpr)
+            },
+            Expr::List(lexpr) => {
+                write!(f, "(").unwrap();
+                for l in lexpr {
+                    write!(f, " {} ", l).unwrap();
+                }
+                write!(f, ")")
+            },
+            Expr::Lambda(_, _, _) => {
+                write!(f, "<procedure>")
+            },
+            Expr::Var(t) => write!(f, "{}", t),
+            Expr::Literal(t) => write!(f, "{:?}", t),
+            Expr::Quote(t) => write!(f, "(quote {})", t),
+            Expr::Builtin(_) => {
+                write!(f, "<built-in procedure>")
+            },
             Expr::Nil => write!(f, "()"),
         }
     }

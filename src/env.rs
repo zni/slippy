@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use crate::builtins;
 use crate::ast::Expr;
 
 #[derive(Clone, Debug)]
@@ -9,7 +10,9 @@ pub struct Env {
 impl Env {
     pub fn new() -> Env {
         let mut env = Vec::new();
-        env.push(HashMap::new());
+        let mut global = HashMap::new();
+        global.insert(String::from("+"), Expr::Builtin(builtins::add));
+        env.push(global);
         Env { env }
     }
 
