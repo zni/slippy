@@ -1,4 +1,5 @@
 use std::fmt;
+use crate::env::Env;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TokenType {
@@ -52,11 +53,11 @@ impl fmt::Display for Token {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum Expr {
     DottedPair(Vec<Expr>, Box<Expr>),
     List(Vec<Expr>),
-    Lambda(Vec<Expr>, Vec<Expr>),
+    Lambda(Vec<Expr>, Vec<Expr>, Env),
     Var(String),
     Literal(Literal),
     Quote(Box<Expr>),
@@ -81,7 +82,7 @@ impl fmt::Display for Expr {
                 }
                 write!(f, ")")
             },
-            Expr::Lambda(vars, body) => {
+            Expr::Lambda(vars, body, _) => {
                 write!(f, "(lambda (").unwrap();
                 for v in vars {
                     write!(f, " {} ", v).unwrap();

@@ -2,13 +2,14 @@ extern crate rustyline;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
-use slippy::eval::Eval;
+use slippy::env::Env;
+use slippy::eval::eval;
 use slippy::lexer::Lexer;
 use slippy::parser::Parser;
 
 fn main() {
     let mut rl = Editor::<()>::new();
-    let mut eval = Eval::new();
+    let mut env = Env::new();
     loop {
         let readline = rl.readline("slippy> ");
         match readline {
@@ -20,7 +21,7 @@ fn main() {
                 let mut parser = Parser::new(lexer.tokens);
                 let result = parser.parse();
                 if result.is_ok() {
-                    let eval_result = eval.eval(result.unwrap());
+                    let eval_result = eval(result.unwrap(), &mut env);
                     if eval_result.is_ok() {
                         println!("{}", eval_result.unwrap());
                     } else {
