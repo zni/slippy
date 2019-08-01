@@ -136,7 +136,7 @@ impl Lexer {
     }
 
     fn identifier(&mut self) {
-        while Lexer::is_ident(self.peek()) {
+        while Lexer::is_ident(self.peek()) || Lexer::is_digit(self.peek()) {
             self.advance();
         }
 
