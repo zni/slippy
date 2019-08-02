@@ -114,6 +114,8 @@ fn ifexpr(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
     match proc {
         Expr::Lambda(parms, body, mut proc_env) => {
+            if parms.len() != args.len() { return Err("applied to incorrect number of args") }
+
             for (p, a) in parms.iter().zip(args) {
                 proc_env.insert(from_var(p.clone()).unwrap(), a);
             }

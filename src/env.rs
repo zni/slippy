@@ -12,6 +12,12 @@ impl Env {
         let mut env = Vec::new();
         let mut global = HashMap::new();
         global.insert(String::from("+"), Expr::Builtin(builtins::add));
+        global.insert(String::from("-"), Expr::Builtin(builtins::sub));
+        global.insert(String::from("*"), Expr::Builtin(builtins::mul));
+        global.insert(String::from("list"), Expr::Builtin(builtins::list));
+        global.insert(String::from("car"), Expr::Builtin(builtins::car));
+        global.insert(String::from("cdr"), Expr::Builtin(builtins::cdr));
+        global.insert(String::from("cons"), Expr::Builtin(builtins::cons));
         env.push(global);
         Env { env }
     }

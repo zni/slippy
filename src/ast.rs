@@ -30,6 +30,22 @@ pub enum Literal {
     Bool(bool),
 }
 
+impl fmt::Display for Literal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Literal::Float(d) => write!(f, "{}", d),
+            Literal::Number(d) => write!(f, "{}", d),
+            Literal::Bool(b) => {
+                if *b {
+                    write!(f, "#t")
+                } else {
+                    write!(f, "#f")
+                }
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Token {
     pub ttype: TokenType,
@@ -86,7 +102,7 @@ impl fmt::Display for Expr {
                 write!(f, "<procedure>")
             },
             Expr::Var(t) => write!(f, "{}", t),
-            Expr::Literal(t) => write!(f, "{:?}", t),
+            Expr::Literal(t) => write!(f, "{}", t),
             Expr::Quote(t) => write!(f, "(quote {})", t),
             Expr::Builtin(_) => {
                 write!(f, "<built-in procedure>")
@@ -117,7 +133,7 @@ impl fmt::Debug for Expr {
                 write!(f, "<procedure>")
             },
             Expr::Var(t) => write!(f, "{}", t),
-            Expr::Literal(t) => write!(f, "{:?}", t),
+            Expr::Literal(t) => write!(f, "{}", t),
             Expr::Quote(t) => write!(f, "(quote {})", t),
             Expr::Builtin(_) => {
                 write!(f, "<built-in procedure>")
