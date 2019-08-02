@@ -86,15 +86,23 @@ impl fmt::Display for Expr {
         match self {
             Expr::DottedPair(lexpr, rexpr) => {
                 write!(f, "(").unwrap();
-                for l in lexpr {
-                    write!(f, " {} ", l).unwrap();
+                for (i, l) in lexpr.iter().enumerate() {
+                    if i < lexpr.len() - 1 {
+                        write!(f, "{} ", l).unwrap();
+                    } else {
+                        write!(f, "{}", l).unwrap();
+                    }
                 }
                 write!(f, ". {})", rexpr)
             },
             Expr::List(lexpr) => {
                 write!(f, "(").unwrap();
-                for l in lexpr {
-                    write!(f, " {} ", l).unwrap();
+                for (i, l) in lexpr.iter().enumerate() {
+                    if i < lexpr.len() - 1 {
+                        write!(f, "{} ", l).unwrap();
+                    } else {
+                        write!(f, "{}", l).unwrap();
+                    }
                 }
                 write!(f, ")")
             },
@@ -117,15 +125,23 @@ impl fmt::Debug for Expr {
         match self {
             Expr::DottedPair(lexpr, rexpr) => {
                 write!(f, "(").unwrap();
-                for l in lexpr {
-                    write!(f, " {} ", l).unwrap();
+                for (i, l) in lexpr.iter().enumerate() {
+                    if i < lexpr.len() - 1 {
+                        write!(f, "{} ", l).unwrap();
+                    } else {
+                        write!(f, "{}", l).unwrap();
+                    }
                 }
                 write!(f, ". {})", rexpr)
             },
             Expr::List(lexpr) => {
                 write!(f, "(").unwrap();
-                for l in lexpr {
-                    write!(f, " {} ", l).unwrap();
+                for (i, l) in lexpr.iter().enumerate() {
+                    if i < lexpr.len() - 1 {
+                        write!(f, "{} ", l).unwrap();
+                    } else {
+                        write!(f, "{}", l).unwrap();
+                    }
                 }
                 write!(f, ")")
             },

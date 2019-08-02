@@ -16,6 +16,7 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
                         "lambda" => lambda(&list, env),
                         "define" => define(&list, env),
                         "if"     => ifexpr(&list, env),
+                        "quote"  => quote(&list, env),
                         _ => {
                             let var = env.get(atom.to_string());
                             if var.is_none() { return Err("undefined variable"); }
@@ -109,6 +110,11 @@ fn ifexpr(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
         let consequent = &list[2];
         return eval(consequent.clone(), env);
     }
+}
+
+fn quote(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 2 { return Err("invalid quote syntax") }
+    Ok(list[1].clone())
 }
 
 fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
