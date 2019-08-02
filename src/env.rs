@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use crate::builtins;
 use crate::ast::Expr;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Env {
     env: Vec<HashMap<String, Expr>>
 }
@@ -19,7 +19,7 @@ impl Env {
     pub fn get(&self, key: String) -> Option<&Expr> {
         for env in self.env.iter().rev() {
             let result = env.get(&key);
-            if result.is_some() { return result.clone(); }
+            if result.is_some() { return result; }
         }
 
         None

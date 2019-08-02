@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use crate::ast::{Literal, Token, TokenType};
 
 pub struct Lexer {
@@ -7,19 +6,10 @@ pub struct Lexer {
     start: usize,
     current: usize,
     line: u32,
-    reserved: HashMap<&'static str, TokenType>,
 }
 
 impl Lexer {
     pub fn new(block: &str) -> Lexer {
-        let mut reserved = HashMap::new();
-        //reserved.insert("lambda", TokenType::Lambda);
-        //reserved.insert("if", TokenType::If);
-        //reserved.insert("cond", TokenType::Cond);
-        //reserved.insert("quote", TokenType::Quote);
-        //reserved.insert("begin", TokenType::Begin);
-        //reserved.insert("set!", TokenType::Set);
-
         let source: Vec<char> = block.chars().collect();
         Lexer {
             source,
@@ -27,7 +17,6 @@ impl Lexer {
             start: 0,
             current: 0,
             line: 1,
-            reserved,
         }
     }
 
@@ -49,9 +38,9 @@ impl Lexer {
             ' ' => (),
             '#' => {
                 if self.match_char('t') {
-                    return self.add_literal_token(TokenType::Bool, Some(Literal::Bool(true)));
+                    self.add_literal_token(TokenType::Bool, Some(Literal::Bool(true)))
                 } else if self.match_char('f') {
-                    return self.add_literal_token(TokenType::Bool, Some(Literal::Bool(false)));
+                    self.add_literal_token(TokenType::Bool, Some(Literal::Bool(false)))
                 }
             },
             '\t' => (),
@@ -140,13 +129,7 @@ impl Lexer {
             self.advance();
         }
 
-        let slice: Vec<char> = self.source[self.start..self.current].to_vec();
-        let slice: String = slice.iter().collect();
-
-        match self.reserved.get(&slice.as_str()) {
-            Some(&t) => self.add_token(t),
-            None => self.add_token(TokenType::Identifier),
-        }
+        self.add_token(TokenType::Identifier)
     }
 
     fn advance(&mut self) -> char {

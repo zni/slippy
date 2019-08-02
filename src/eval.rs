@@ -34,7 +34,7 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
                     }
                 },
                 Expr::Literal(_) => {
-                    return Err("not applicable")
+                    Err("not applicable")
                 },
                 Expr::List(_) => {
                     let proc = eval(head.clone(), env);
@@ -50,16 +50,16 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
 
                     apply(proc.unwrap(), args, env)
                 }
-                _ => return Err("not implemented")
+                _ => Err("not implemented")
             }
         },
 
         Expr::Var(atom) => {
             let var = env.get(atom);
             match var {
-                Some(val) => return Ok(val.clone()),
+                Some(val) => Ok(val.clone()),
                 None => {
-                    return Err("undefined variable");
+                    Err("undefined variable")
                 },
             }
         },
@@ -69,7 +69,7 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-fn lambda(list: &Vec<Expr>, env: &Env) -> Result<Expr, &'static str> {
+fn lambda(list: &[Expr], env: &Env) -> Result<Expr, &'static str> {
     if let Expr::List(args) = &list[1] {
         let body = &list[2..list.len()];
 
@@ -79,7 +79,7 @@ fn lambda(list: &Vec<Expr>, env: &Env) -> Result<Expr, &'static str> {
     }
 }
 
-fn define(list: &Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
+fn define(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     if list.len() != 3 { return Err("invalid define statement"); }
 
     let atom = &list[1];
@@ -97,8 +97,18 @@ fn define(list: &Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Nil)
 }
 
-fn ifexpr(list: &Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
-    Err("not implemented")
+fn ifexpr(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+    let test = eval(list[1].clone(), env);
+    if test.is_err() { return test }
+    let test = test.unwrap();
+
+    if let Expr::Literal(Literal::Bool(false)) = test {
+        let alternate = &list[3];
+        return eval(alternate.clone(), env);
+    } else {
+        let consequent = &list[2];
+        return eval(consequent.clone(), env);
+    }
 }
 
 fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
@@ -113,7 +123,7 @@ fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static st
                 result = eval(expr, &mut proc_env);
             }
 
-            return result;
+            result
         },
         Expr::Builtin(builtin) => {
             builtin(&args, env)

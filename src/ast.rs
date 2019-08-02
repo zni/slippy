@@ -61,7 +61,7 @@ pub enum Expr {
     Var(String),
     Literal(Literal),
     Quote(Box<Expr>),
-    Builtin(fn(&Vec<Expr>, &mut Env) -> Result<Expr, &'static str>),
+    Builtin(fn(&[Expr], &mut Env) -> Result<Expr, &'static str>),
     Nil,
 }
 

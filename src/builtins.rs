@@ -2,7 +2,7 @@ use crate::eval::eval;
 use crate::env::Env;
 use crate::ast::{Expr, Literal};
 
-pub fn add(list: &Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
+pub fn add(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     let mut result: i32 = 0;
     for val in list.iter() {
         let val = eval(val.clone(), env);

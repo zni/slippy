@@ -1,4 +1,4 @@
-use crate::ast::{Token, TokenType, Literal, Expr};
+use crate::ast::{Token, TokenType, Expr};
 
 pub struct Parser {
     pub current: usize,
@@ -215,11 +215,5 @@ impl Parser {
 
     fn previous(&mut self) -> Token {
         self.tokens[self.current - 1].clone()
-    }
-
-    fn rewind(&mut self) {
-        if self.current != 0 {
-            self.current -= 1;
-        }
     }
 }
