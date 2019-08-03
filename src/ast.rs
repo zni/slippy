@@ -47,7 +47,7 @@ impl fmt::Display for Literal {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Token {
     pub ttype: TokenType,
     pub lexeme: String,
@@ -66,7 +66,13 @@ impl Token {
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.lexeme)
+        write!(f, "{:?}", self.ttype)
+    }
+}
+
+impl fmt::Debug for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.ttype)
     }
 }
 
