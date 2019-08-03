@@ -82,21 +82,40 @@ fn lambda(list: &[Expr], env: &Env) -> Result<Expr, &'static str> {
 }
 
 fn define(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
-    if list.len() != 3 { return Err("invalid define statement"); }
+    if list.len() < 3 { return Err("invalid define statement"); }
 
-    let atom = &list[1];
-    let atom = from_var(atom);
-    if atom.is_none() { return Err("first argument to define must be an atom"); }
-    let atom = atom.unwrap();
+    match &list[1] {
+        Expr::List(vars) => {
+            if vars.is_empty() { return Err("define vars cannot be empty") }
 
-    let val = &list[2];
-    let val = eval(val.clone(), env);
-    if val.is_err() { return val; }
-    let val = val.unwrap();
-    if is_unspecified(&val) { return Err("cannot be used as an expression") }
+            let args = if vars.len() == 1 {
+                Vec::new()
+            } else {
+                vars[1..vars.len()].to_vec()
+            };
 
-    env.insert(atom, val.clone());
-    Ok(Expr::Unspecified)
+            env.insert(
+                vars[0].to_string(),
+                Expr::Lambda(args, list[2..list.len()].to_vec(), env.clone())
+            );
+
+            Ok(Expr::Unspecified)
+        },
+        Expr::Var(atom) => {
+            let val = &list[2];
+            let val = eval(val.clone(), env);
+            if val.is_err() { return val; }
+            let val = val.unwrap();
+            if is_unspecified(&val) {
+                return Err("unspecified value cannot be used as an expression")
+            }
+
+            env.insert(atom.to_string(), val.clone());
+
+            Ok(Expr::Unspecified)
+        },
+        _ => Err("invalid define statement")
+    }
 }
 
 fn ifexpr(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
