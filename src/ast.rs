@@ -80,7 +80,7 @@ pub enum Expr {
     Literal(Literal),
     Quote(Box<Expr>),
     Builtin(fn(&[Expr], &mut Env) -> Result<Expr, &'static str>),
-    Nil,
+    Unspecified,
 }
 
 impl fmt::Display for Expr {

@@ -95,10 +95,10 @@ fn define(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     let val = eval(val.clone(), env);
     if val.is_err() { return val; }
     let val = val.unwrap();
-    if is_nil(&val) { return Err("cannot be used as an expression") }
+    if is_unspecified(&val) { return Err("cannot be used as an expression") }
 
     env.insert(atom, val.clone());
-    Ok(Expr::Nil)
+    Ok(Expr::Unspecified)
 }
 
 fn ifexpr(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
@@ -133,7 +133,7 @@ fn set(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 
             let result = env.set(atom.to_string(), val);
             if result.is_ok() {
-                Ok(Expr::Nil)
+                Ok(Expr::Unspecified)
             } else {
                 Err("variable is not bound")
             }
@@ -173,8 +173,8 @@ fn from_var(var: Expr) -> Option<String> {
    }
 }
 
-fn is_nil(var: &Expr) -> bool {
-    if let Expr::Nil = var {
+fn is_unspecified(var: &Expr) -> bool {
+    if let Expr::Unspecified = var {
         return true;
     } else {
         return false;
