@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use crate::ast::{Expr, Literal};
 use crate::env::Env;
 
@@ -87,7 +85,7 @@ fn define(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     if list.len() != 3 { return Err("invalid define statement"); }
 
     let atom = &list[1];
-    let atom = from_var(atom.clone());
+    let atom = from_var(atom);
     if atom.is_none() { return Err("first argument to define must be an atom"); }
     let atom = atom.unwrap();
 
@@ -115,7 +113,7 @@ fn ifexpr(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-fn quote(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+fn quote(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     if list.len() != 2 { return Err("invalid quote syntax") }
     Ok(list[1].clone())
 }
@@ -144,15 +142,15 @@ fn set(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 
 fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
     match proc {
-        Expr::Lambda(parms, body, mut proc_env) => {
+        Expr::Lambda(parms, body, _) => {
             if parms.len() != args.len() { return Err("applied to incorrect number of args") }
 
             env.extend_env();
             for (p, a) in parms.iter().zip(args) {
-                env.insert(from_var(p.clone()).unwrap(), a);
+                env.insert(from_var(p).unwrap(), a);
             }
 
-            let mut result = Ok(Expr::List(vec![]));
+            let mut result = Ok(Expr::Unspecified);
             for expr in body {
                 result = eval(expr, env);
             }
@@ -167,9 +165,9 @@ fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static st
     }
 }
 
-fn from_var(var: Expr) -> Option<String> {
+fn from_var(var: &Expr) -> Option<String> {
    if let Expr::Var(atom) = var {
-       Some(atom)
+       Some(atom.to_string())
    } else {
        None
    }
