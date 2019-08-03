@@ -100,7 +100,7 @@ impl fmt::Display for Expr {
                         write!(f, "{}", l).unwrap();
                     }
                 }
-                write!(f, ". {})", rexpr)
+                write!(f, " . {})", rexpr)
             },
             Expr::List(lexpr) => {
                 write!(f, "(").unwrap();
@@ -139,7 +139,7 @@ impl fmt::Debug for Expr {
                         write!(f, "{}", l).unwrap();
                     }
                 }
-                write!(f, ". {})", rexpr)
+                write!(f, " . {})", rexpr)
             },
             Expr::List(lexpr) => {
                 write!(f, "(").unwrap();
