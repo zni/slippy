@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 extern crate rustyline;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;

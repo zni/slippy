@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::ast::{Expr, Literal};
 use crate::env::Env;
 
@@ -17,6 +19,7 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
                         "define" => define(&list, env),
                         "if"     => ifexpr(&list, env),
                         "quote"  => quote(&list, env),
+                        "set!"   => set(&list, env),
                         _ => {
                             let var = env.get(atom.to_string());
                             if var.is_none() { return Err("undefined variable"); }
@@ -115,6 +118,28 @@ fn ifexpr(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 fn quote(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     if list.len() != 2 { return Err("invalid quote syntax") }
     Ok(list[1].clone())
+}
+
+fn set(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 3 { return Err("invalid set syntax") }
+
+    let var = &list[1];
+    match var {
+        Expr::Var(atom) => {
+            let val = &list[2];
+            let val = eval(val.clone(), env);
+            if val.is_err() { return val; }
+            let val = val.unwrap();
+
+            let result = env.set(atom.to_string(), val);
+            if result.is_ok() {
+                Ok(Expr::Nil)
+            } else {
+                Err("variable is not bound")
+            }
+        },
+        _ => Err("first parameter must be an atom"),
+    }
 }
 
 fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {

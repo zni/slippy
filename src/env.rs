@@ -18,6 +18,8 @@ impl Env {
         global.insert(String::from("car"), Expr::Builtin(builtins::car));
         global.insert(String::from("cdr"), Expr::Builtin(builtins::cdr));
         global.insert(String::from("cons"), Expr::Builtin(builtins::cons));
+        global.insert(String::from("list?"), Expr::Builtin(builtins::listp));
+        global.insert(String::from("null?"), Expr::Builtin(builtins::nullp));
         env.push(global);
         Env { env }
     }
@@ -29,6 +31,18 @@ impl Env {
         }
 
         None
+    }
+
+    pub fn set(&mut self, key: String, value: Expr) -> Result<(), &'static str> {
+        for env in self.env.iter_mut().rev() {
+            let result = env.get(&key);
+            if result.is_none() { continue }
+
+            env.insert(key, value);
+            return Ok(());
+        }
+
+        Err("key not found")
     }
 
     pub fn insert(&mut self, key: String, value: Expr) {

@@ -4,6 +4,10 @@ use crate::eval::eval;
 use crate::env::Env;
 use crate::ast::{Expr, Literal};
 
+/*
+ * Numerical built-ins
+ */
+
 pub fn add(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     let mut result: i32 = 0;
     for val in list.iter() {
@@ -67,6 +71,10 @@ pub fn sub(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Literal(Literal::Number(result)))
 }
 
+/*
+ * List built-ins
+ */
+
 pub fn list(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     let mut new_list = Vec::new();
     for val in list.iter() {
@@ -118,5 +126,29 @@ pub fn cons(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
             Ok(Expr::List(cell))
         },
         _ => Err("called with incorrect type")
+    }
+}
+
+pub fn listp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 1 { return Err("called with incorrect number of arguments") }
+
+    match &list[0] {
+        Expr::List(_) => Ok(Expr::Literal(Literal::Bool(true))),
+        _             => Ok(Expr::Literal(Literal::Bool(false))),
+    }
+}
+
+pub fn nullp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 1 { return Err("called with incorrect number of arguments") }
+
+    match &list[0] {
+        Expr::List(l) => {
+            if l.is_empty() {
+                Ok(Expr::Literal(Literal::Bool(true)))
+            } else {
+                Ok(Expr::Literal(Literal::Bool(false)))
+            }
+        },
+        _ => Ok(Expr::Literal(Literal::Bool(false))),
     }
 }
