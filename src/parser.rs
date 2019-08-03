@@ -10,94 +10,19 @@ impl Parser {
         Parser { current: 0, tokens }
     }
 
-    pub fn parse(&mut self) -> Result<Expr, &'static str> {
-        self.datum()
-    }
-/*
-    fn expression(&mut self) -> Result<Expr, &'static str> {
-        let constant = self.constant();
-        if constant.is_ok() {
-            return constant;
-        }
-
-        let variable = self.variable();
-        if variable.is_ok() {
-            return variable;
-        }
-
-        if !self.match_token(vec![TokenType::LParen]) {
-            return Err("expecting left paren");
-        }
-
-        // Quote
-        if self.match_token(vec![TokenType::Quote]) {
-            let datum = self.datum();
-
-            if datum.is_ok() && self.check(TokenType::RParen) {
-                self.advance();
-                return Ok(Expr::Quote(Box::new(datum.unwrap())));
-            }
-
-        // Lambda
-        } else if self.match_token(vec![TokenType::Lambda]) {
-            let formals = self.formals();
-            if formals.is_err() { return Err(formals.unwrap_err()); }
-
-            let body = self.datum();
-            if body.is_err() { return Err(body.unwrap_err()); }
-
-            if self.check(TokenType::RParen) {
-                self.advance();
-                return Ok(Expr::Lambda(formals.unwrap(),
-                                       Box::new(body.unwrap())));
-            }
-
-        // Application
-        } else {
-            let exp = self.expression();
-            if exp.is_err() { return Err(exp.unwrap_err()); }
-
-            let mut operands = Vec::new();
-            while !self.check(TokenType::RParen) {
-                let op = self.expression();
-                if op.is_err() { return Err(op.unwrap_err()); }
-
-                operands.push(op.unwrap());
-            }
-            self.advance();
-            return Ok(Expr::App(Box::new(exp.unwrap()), operands));
-        }
-
-        if !self.match_token(vec![TokenType::RParen]) {
-            return Err("expecting right paren");
-        }
-
-        Err("expecting expression")
-    }
-
-    fn formals(&mut self) -> Result<Vec<Expr>, &'static str> {
-        let mut vars = Vec::new();
-        let lparen = self.expect(TokenType::LParen, "expecting left paren");
-        if lparen.is_err() { return Err(lparen.unwrap_err()); }
+    pub fn parse(&mut self) -> Result<Vec<Expr>, &'static str> {
+        let mut program = Vec::new();
         loop {
-            if self.match_token(vec![TokenType::RParen]) { break; }
+            if self.is_at_end() {
+                break;
+            }
 
-            let var = self.variable();
-            if var.is_err() { return Err(var.unwrap_err()) }
-            vars.push(var.unwrap())
+            let result = self.datum();
+            if result.is_err() { return Err(result.unwrap_err()) }
+            program.push(result.unwrap());
         }
-
-        Ok(vars)
+        Ok(program)
     }
-
-    fn variable(&mut self) -> Result<Expr, &'static str> {
-        if self.match_token(vec![TokenType::Identifier]) {
-            Ok(Expr::Var(self.previous()))
-        } else {
-            Err("expecting variable")
-        }
-    }
-    */
 
     fn datum(&mut self) -> Result<Expr, &'static str> {
 
