@@ -46,11 +46,12 @@ impl Env {
     }
 
     pub fn insert(&mut self, key: String, value: Expr) {
-        self.env[0].insert(key, value);
+        let len = self.env.len();
+        self.env[len - 1].insert(key, value);
     }
 
-    pub fn extend_env(&mut self, env: HashMap<String, Expr>) {
-        self.env.push(env);
+    pub fn extend_env(&mut self) {
+        self.env.push(HashMap::new());
     }
 
     pub fn pop_env(&mut self) -> Option<HashMap<String, Expr>> {

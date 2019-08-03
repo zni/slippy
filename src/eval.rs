@@ -147,14 +147,16 @@ fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static st
         Expr::Lambda(parms, body, mut proc_env) => {
             if parms.len() != args.len() { return Err("applied to incorrect number of args") }
 
+            env.extend_env();
             for (p, a) in parms.iter().zip(args) {
-                proc_env.insert(from_var(p.clone()).unwrap(), a);
+                env.insert(from_var(p.clone()).unwrap(), a);
             }
 
             let mut result = Ok(Expr::List(vec![]));
             for expr in body {
-                result = eval(expr, &mut proc_env);
+                result = eval(expr, env);
             }
+            env.pop_env();
 
             result
         },
