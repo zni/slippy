@@ -117,7 +117,7 @@ impl fmt::Display for Expr {
             Expr::Builtin(_) => {
                 write!(f, "<built-in procedure>")
             },
-            Expr::Nil => write!(f, "()"),
+            Expr::Unspecified => write!(f, "#unspecified"),
         }
     }
 }
@@ -156,7 +156,7 @@ impl fmt::Debug for Expr {
             Expr::Builtin(_) => {
                 write!(f, "<built-in procedure>")
             },
-            Expr::Nil => write!(f, "()"),
+            Expr::Unspecified => write!(f, "#unspecified"),
         }
     }
 }
