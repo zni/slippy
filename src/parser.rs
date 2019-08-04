@@ -17,16 +17,28 @@ impl Parser {
                 break;
             }
 
-            let result = self.datum();
+            let result = self.quote();
             if result.is_err() { return Err(result.unwrap_err()) }
             program.push(result.unwrap());
         }
         Ok(program)
     }
 
-    fn datum(&mut self) -> Result<Expr, &'static str> {
+    fn quote(&mut self) -> Result<Expr, &'static str> {
+        if self.match_token(vec![TokenType::Quote]) {
+            let datum = self.quote();
+            if datum.is_ok() {
+                Ok(Expr::List(vec![Expr::Var("quote".to_string()),
+                                   datum.unwrap()]))
+            } else {
+                datum
+            }
+        } else {
+            self.datum()
+        }
+    }
 
-        // self.list().or({println!("fallback to datum"); self.simple_datum()})
+    fn datum(&mut self) -> Result<Expr, &'static str> {
         let simple_datum = self.simple_datum();
         if simple_datum.is_ok() {
             return simple_datum;
@@ -46,13 +58,13 @@ impl Parser {
             }
 
             loop {
-                let datum = self.datum();
+                let datum = self.quote();
                 if datum.is_err() { return Err(datum.unwrap_err()); }
                 lexprs.push(datum.unwrap());
 
                 // Dotted Pair
                 if self.match_token(vec![TokenType::Dot]) {
-                    let rexpr = self.datum();
+                    let rexpr = self.quote();
                     let rparen = self.expect(TokenType::RParen, "expecting right paren");
                     if rexpr.is_err() { return Err(rexpr.unwrap_err()); }
                     if rparen.is_err() { return Err(rparen.unwrap_err()); }

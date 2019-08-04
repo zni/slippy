@@ -35,6 +35,7 @@ impl Lexer {
             '(' => self.add_token(TokenType::LParen),
             ')' => self.add_token(TokenType::RParen),
             '.' => self.add_token(TokenType::Dot),
+            '\'' => self.add_token(TokenType::Quote),
             ' ' => (),
             '#' => {
                 if self.match_char('t') {
