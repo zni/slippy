@@ -203,6 +203,9 @@ pub fn car(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
             if l.is_empty() { return Err("called with incorrect type ()") }
             Ok(l[0].clone())
         },
+        Expr::DottedPair(l, _) => {
+            Ok(l[0].clone())
+        },
         _ => Err("called with incorrect type")
     }
 }
@@ -215,6 +218,14 @@ pub fn cdr(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
         Expr::List(l) => {
             if l.is_empty() { return Err("called with incorrect type ()") }
             Ok(Expr::List(l[1..l.len()].to_vec()))
+        },
+        Expr::DottedPair(l, r) => {
+            let l = l[1..l.len()].to_vec();
+            if l.is_empty() {
+                Ok(*r.clone())
+            } else {
+                Ok(Expr::DottedPair(l, Box::new(*r.clone())))
+            }
         },
         _ => Err("called with incorrect type")
     }
