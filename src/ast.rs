@@ -24,7 +24,7 @@ pub enum TokenType {
     EOF,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum Literal {
     Float(f64),
     Number(i32),

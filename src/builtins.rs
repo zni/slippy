@@ -8,6 +8,111 @@ use crate::ast::{Expr, Literal};
  * Numerical built-ins
  */
 
+pub fn equal(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    let previous = match &list[0] {
+        Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
+        Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
+        _ => return Err("must be a number"),
+    };
+
+    for val in list.iter().skip(1) {
+        let current = match val {
+            Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
+            Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
+            _ => return Err("must be a number"),
+        };
+
+        if previous != current {
+            return Ok(Expr::Literal(Literal::Bool(false)))
+        }
+    }
+    Ok(Expr::Literal(Literal::Bool(true)))
+}
+
+pub fn lt(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    let previous = match &list[0] {
+        Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
+        Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
+        _ => return Err("must be a number"),
+    };
+
+    for val in list.iter().skip(1) {
+        let current = match val {
+            Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
+            Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
+            _ => return Err("must be a number"),
+        };
+
+        if !(previous < current) {
+            return Ok(Expr::Literal(Literal::Bool(false)))
+        }
+    }
+    Ok(Expr::Literal(Literal::Bool(true)))
+}
+
+pub fn lte(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    let previous = match &list[0] {
+        Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
+        Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
+        _ => return Err("must be a number"),
+    };
+
+    for val in list.iter().skip(1) {
+        let current = match val {
+            Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
+            Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
+            _ => return Err("must be a number"),
+        };
+
+        if !(previous <= current) {
+            return Ok(Expr::Literal(Literal::Bool(false)))
+        }
+    }
+    Ok(Expr::Literal(Literal::Bool(true)))
+}
+
+pub fn gt(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    let previous = match &list[0] {
+        Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
+        Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
+        _ => return Err("must be a number"),
+    };
+
+    for val in list.iter().skip(1) {
+        let current = match val {
+            Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
+            Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
+            _ => return Err("must be a number"),
+        };
+
+        if !(previous > current) {
+            return Ok(Expr::Literal(Literal::Bool(false)))
+        }
+    }
+    Ok(Expr::Literal(Literal::Bool(true)))
+}
+
+pub fn gte(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    let previous = match &list[0] {
+        Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
+        Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
+        _ => return Err("must be a number"),
+    };
+
+    for val in list.iter().skip(1) {
+        let current = match val {
+            Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
+            Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
+            _ => return Err("must be a number"),
+        };
+
+        if !(previous >= current) {
+            return Ok(Expr::Literal(Literal::Bool(false)))
+        }
+    }
+    Ok(Expr::Literal(Literal::Bool(true)))
+}
+
 pub fn add(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     let mut result: i32 = 0;
     for val in list.iter() {
@@ -71,6 +176,7 @@ pub fn sub(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Literal(Literal::Number(result)))
 }
 
+
 /*
  * List built-ins
  */
@@ -129,6 +235,11 @@ pub fn cons(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
+
+/*
+ * Tests
+ */
+
 pub fn listp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
@@ -152,3 +263,34 @@ pub fn nullp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
         _ => Ok(Expr::Literal(Literal::Bool(false))),
     }
 }
+
+pub fn procedurep(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 1 { return Err("called with incorrect number of arguments") }
+
+    match &list[0] {
+        Expr::Lambda(_, _, _) => {
+            Ok(Expr::Literal(Literal::Bool(true)))
+        },
+        _ => Ok(Expr::Literal(Literal::Bool(false))),
+    }
+}
+
+pub fn numberp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 1 { return Err("called with incorrect number of arguments") }
+
+    match &list[0] {
+        Expr::Literal(Literal::Number(_)) => Ok(Expr::Literal(Literal::Bool(true))),
+        Expr::Literal(Literal::Float(_)) => Ok(Expr::Literal(Literal::Bool(true))),
+        _ => Ok(Expr::Literal(Literal::Bool(false))),
+    }
+}
+
+pub fn symbolp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 1 { return Err("called with incorrect number of arguments") }
+
+    match &list[0] {
+        Expr::Var(_) => Ok(Expr::Literal(Literal::Bool(true))),
+        _ => Ok(Expr::Literal(Literal::Bool(false))),
+    }
+}
+

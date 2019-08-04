@@ -11,6 +11,11 @@ impl Env {
     pub fn new() -> Env {
         let mut env = Vec::new();
         let mut global = HashMap::new();
+        global.insert(String::from("="), Expr::Builtin(builtins::equal));
+        global.insert(String::from("<"), Expr::Builtin(builtins::lt));
+        global.insert(String::from("<="), Expr::Builtin(builtins::lte));
+        global.insert(String::from(">"), Expr::Builtin(builtins::gt));
+        global.insert(String::from(">="), Expr::Builtin(builtins::gte));
         global.insert(String::from("+"), Expr::Builtin(builtins::add));
         global.insert(String::from("-"), Expr::Builtin(builtins::sub));
         global.insert(String::from("*"), Expr::Builtin(builtins::mul));
@@ -20,6 +25,9 @@ impl Env {
         global.insert(String::from("cons"), Expr::Builtin(builtins::cons));
         global.insert(String::from("list?"), Expr::Builtin(builtins::listp));
         global.insert(String::from("null?"), Expr::Builtin(builtins::nullp));
+        global.insert(String::from("number?"), Expr::Builtin(builtins::numberp));
+        global.insert(String::from("procedure?"), Expr::Builtin(builtins::procedurep));
+        global.insert(String::from("symbol?"), Expr::Builtin(builtins::symbolp));
         env.push(global);
         Env { env }
     }
