@@ -124,6 +124,8 @@ fn ifexpr(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     let test = test.unwrap();
 
     if let Expr::Literal(Literal::Bool(false)) = test {
+        if list.len() == 3 { return Ok(Expr::Unspecified) }
+
         let alternate = &list[3];
         return eval(alternate.clone(), env);
     } else {
