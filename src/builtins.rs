@@ -282,6 +282,9 @@ pub fn procedurep(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
         Expr::Lambda(_, _, _) => {
             Ok(Expr::Literal(Literal::Bool(true)))
         },
+        Expr::Builtin(_) => {
+            Ok(Expr::Literal(Literal::Bool(true)))
+        },
         _ => Ok(Expr::Literal(Literal::Bool(false))),
     }
 }
