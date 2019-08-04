@@ -1,5 +1,6 @@
 use std::ops::Neg;
 
+use crate::eval;
 use crate::eval::eval;
 use crate::env::Env;
 use crate::ast::{Expr, Literal};
@@ -242,7 +243,9 @@ pub fn cons(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
             cell.insert(0, val.clone());
             Ok(Expr::List(cell))
         },
-        _ => Err("called with incorrect type")
+        _ => {
+            Ok(Expr::DottedPair(vec![val.clone()], Box::new(cell.clone())))
+        }
     }
 }
 
@@ -308,3 +311,27 @@ pub fn symbolp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
+
+/*
+ * Other
+ */
+
+pub fn apply(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() < 2 { return Err("called with incorrect number of arguments") }
+
+    let proc = &list[0];
+    let objs = &list[1..list.len() - 1];
+    let arg = &list[list.len() - 1];
+
+    let mut objlist = Vec::new();
+    for obj in objs.iter() {
+        objlist.push(obj.clone());
+    }
+
+    if let Expr::List(l) = arg {
+        objlist.append(&mut l.clone());
+        eval::apply(proc.clone(), objlist, env)
+    } else {
+        Err("apply expecting a list")
+    }
+}

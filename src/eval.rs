@@ -18,6 +18,7 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
                         "if"     => ifexpr(&list, env),
                         "quote"  => quote(&list, env),
                         "set!"   => set(&list, env),
+                        "begin"  => begin(&list, env),
                         _ => {
                             let var = env.get(atom.to_string());
                             if var.is_none() { return Err("undefined variable"); }
@@ -161,7 +162,16 @@ fn set(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
+fn begin(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+    let mut result = Ok(Expr::Unspecified);
+    for expr in list.iter().skip(1) {
+        result = eval(expr.clone(), env);
+    }
+
+    result
+}
+
+pub fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
     match proc {
         Expr::Lambda(parms, body, _) => {
             if parms.len() != args.len() { return Err("applied to incorrect number of args") }

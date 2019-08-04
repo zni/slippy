@@ -28,6 +28,7 @@ impl Env {
         global.insert(String::from("number?"), Expr::Builtin(builtins::numberp));
         global.insert(String::from("procedure?"), Expr::Builtin(builtins::procedurep));
         global.insert(String::from("symbol?"), Expr::Builtin(builtins::symbolp));
+        global.insert(String::from("apply"), Expr::Builtin(builtins::apply));
         env.push(global);
         Env { env }
     }
