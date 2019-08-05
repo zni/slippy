@@ -34,7 +34,13 @@ impl Lexer {
         match n {
             '(' => self.add_token(TokenType::LParen),
             ')' => self.add_token(TokenType::RParen),
-            '.' => self.add_token(TokenType::Dot),
+            '.' => {
+                if Lexer::is_ident(self.peek()) {
+                    self.identifier()
+                } else {
+                    self.add_token(TokenType::Dot)
+                }
+            },
             '\'' => self.add_token(TokenType::Quote),
             ' ' => (),
             '#' => {
