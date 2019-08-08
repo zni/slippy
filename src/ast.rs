@@ -15,12 +15,7 @@ pub enum TokenType {
     Number,
     Float,
     Identifier,
-    Lambda,
-    If,
-    Cond,
     Quote,
-    Begin,
-    Set,
     EOF,
 }
 
