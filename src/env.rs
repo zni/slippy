@@ -23,6 +23,7 @@ impl Env {
         global.insert(String::from("car"), Expr::Builtin(builtins::car));
         global.insert(String::from("cdr"), Expr::Builtin(builtins::cdr));
         global.insert(String::from("cons"), Expr::Builtin(builtins::cons));
+        global.insert(String::from("append"), Expr::Builtin(builtins::append));
         global.insert(String::from("list?"), Expr::Builtin(builtins::listp));
         global.insert(String::from("null?"), Expr::Builtin(builtins::nullp));
         global.insert(String::from("number?"), Expr::Builtin(builtins::numberp));

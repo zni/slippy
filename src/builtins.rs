@@ -249,6 +249,26 @@ pub fn cons(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
+pub fn append(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() < 2 { return Err("called with incorrect number of arguments") }
+
+    let listval = &list[0];
+    match listval {
+        Expr::List(val) => {
+            let mut val = val.clone();
+            for n in list.iter().skip(1) {
+                if let Expr::List(l) = n {
+                    result = Expr::List(val.append(&mut l.clone()));
+                } else {
+                    return Err("argument must be a list");
+                }
+            }
+            Ok(Expr::List(val.to_vec()))
+        },
+        _ => Err("incorrect type passed to append")
+    }
+}
+
 
 /*
  * Tests
