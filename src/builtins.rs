@@ -258,7 +258,7 @@ pub fn append(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
             let mut val = val.clone();
             for n in list.iter().skip(1) {
                 if let Expr::List(l) = n {
-                    result = Expr::List(val.append(&mut l.clone()));
+                    val.append(&mut l.clone());
                 } else {
                     return Err("argument must be a list");
                 }
