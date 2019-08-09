@@ -53,6 +53,7 @@ impl Lexer {
             '\t' => (),
             '\r' => (),
             '\n' => self.line += 1,
+            '"' => self.string(),
             _   => {
                 if Lexer::is_digit(n) {
                     self.number();
@@ -137,6 +138,25 @@ impl Lexer {
         }
 
         self.add_token(TokenType::Identifier)
+    }
+
+    fn string(&mut self) {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.error("unterminated string.");
+            }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            self.error("unterminated string.");
+            return;
+        }
+
+        self.advance();
+        let slice: Vec<char> = self.source[self.start + 1..self.current - 1].to_vec();
+        let slice: String = slice.iter().collect();
+        self.add_literal_token(TokenType::String, Some(Literal::String(slice)));
     }
 
     fn advance(&mut self) -> char {

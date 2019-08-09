@@ -14,16 +14,18 @@ pub enum TokenType {
     Bool,
     Number,
     Float,
+    String,
     Identifier,
     Quote,
     EOF,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Literal {
     Float(f64),
     Number(i32),
     Bool(bool),
+    String(String),
 }
 
 impl fmt::Display for Literal {
@@ -37,7 +39,8 @@ impl fmt::Display for Literal {
                 } else {
                     write!(f, "#f")
                 }
-            }
+            },
+            Literal::String(s) => write!(f, "{:?}", s),
         }
     }
 }

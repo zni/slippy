@@ -91,7 +91,8 @@ impl Parser {
     fn simple_datum(&mut self) -> Result<Expr, &'static str> {
         if self.match_token(vec![TokenType::Number,
                                  TokenType::Float,
-                                 TokenType::Bool]) {
+                                 TokenType::Bool,
+                                 TokenType::String]) {
             Ok(Expr::Literal(self.previous().literal.unwrap()))
         } else if self.match_token(vec![TokenType::Identifier]) {
             Ok(Expr::Var(self.previous().lexeme))
