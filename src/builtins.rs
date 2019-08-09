@@ -243,6 +243,11 @@ pub fn cons(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
             cell.insert(0, val.clone());
             Ok(Expr::List(cell))
         },
+        Expr::DottedPair(l, end) => {
+            let mut l = l.clone();
+            l.insert(0, val.clone());
+            Ok(Expr::DottedPair(l.to_vec(), end.clone()))
+        },
         _ => {
             Ok(Expr::DottedPair(vec![val.clone()], Box::new(cell.clone())))
         }
