@@ -28,6 +28,22 @@ pub enum Literal {
     String(String),
 }
 
+impl Literal {
+    pub fn is_string(&self) -> bool {
+        match self {
+            Literal::String(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn to_string(&self) -> Option<String> {
+        match self {
+            Literal::String(s) => Some(s.clone()),
+            _ => None,
+        }
+    }
+}
+
 impl fmt::Display for Literal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -97,6 +113,20 @@ impl Expr {
     pub fn to_vec(&self) -> Option<Vec<Expr>> {
         match self {
             Expr::List(l) => Some(l.clone()),
+            _ => None,
+        }
+    }
+
+    pub fn is_literal(&self) -> bool {
+        match self {
+            Expr::Literal(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn to_literal(&self) -> Option<Literal> {
+        match self {
+            Expr::Literal(l) => Some(l.clone()),
             _ => None,
         }
     }

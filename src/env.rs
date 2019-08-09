@@ -31,6 +31,7 @@ impl Env {
         global.insert(String::from("procedure?"), Expr::Builtin(builtins::procedurep));
         global.insert(String::from("symbol?"), Expr::Builtin(builtins::symbolp));
         global.insert(String::from("apply"), Expr::Builtin(builtins::apply));
+        global.insert(String::from("load"), Expr::Builtin(builtins::load));
         env.push(global);
         Env { env }
     }

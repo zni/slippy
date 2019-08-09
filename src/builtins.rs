@@ -1,9 +1,14 @@
 use std::ops::Neg;
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::Path;
 
 use crate::eval;
 use crate::eval::eval;
 use crate::env::Env;
 use crate::ast::{Expr, Literal};
+use crate::lexer::Lexer;
+use crate::parser::Parser;
 
 /*
  * Numerical built-ins
@@ -371,4 +376,49 @@ pub fn apply(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     } else {
         Err("apply expecting a list")
     }
+}
+
+pub fn load(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 1 { return Err("called with incorrect number of arguments") }
+
+    let val = &list[0];
+    if !val.is_literal() {
+        return Err("load called with incorrect type");
+    }
+
+    let val = val.to_literal().unwrap();
+    if !val.is_string() {
+        return Err("load called with incorrect type");
+    }
+
+    let file = val.to_string().unwrap();
+
+    let path = Path::new(&file);
+    let mut file = File::open(&path)
+        .expect("Failed to open file");
+
+    let mut source = String::new();
+    file.read_to_string(&mut source)
+        .expect("Failed to read file");
+
+    let mut lexer = Lexer::new(&source);
+    lexer.scan();
+    let mut parser = Parser::new(lexer.tokens);
+    let result = parser.parse();
+    if result.is_ok() {
+        let exprs = result.unwrap();
+        for expr in exprs.iter() {
+            let eval_result = eval(expr.clone(), env);
+            if eval_result.is_ok() {
+                println!("{}", eval_result.unwrap());
+            } else {
+                println!("{}", eval_result.unwrap_err());
+            }
+        }
+    } else {
+        println!("{}", result.unwrap_err());
+        println!("pos: {}", parser.current);
+    }
+
+    Ok(Expr::Unspecified)
 }
