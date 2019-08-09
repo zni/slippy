@@ -274,6 +274,18 @@ pub fn append(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
+pub fn length(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 1 { return Err("called with incorrect number of arguments") }
+
+    let listval = &list[0];
+    if !listval.is_list() {
+        return Err("length called with incorrect type")
+    }
+
+    let size = listval.to_vec().unwrap().len() as i32;
+    return Ok(Expr::Literal(Literal::Number(size)));
+}
+
 
 /*
  * Tests
