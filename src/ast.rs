@@ -83,6 +83,22 @@ pub enum Expr {
     Unspecified,
 }
 
+impl Expr {
+    pub fn is_list(&self) -> bool {
+        match self {
+            Expr::List(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn to_vec(&self) -> Option<Vec<Expr>> {
+        match self {
+            Expr::List(l) => Some(l.clone()),
+            _ => None,
+        }
+    }
+}
+
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

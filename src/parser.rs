@@ -68,8 +68,15 @@ impl Parser {
                     let rparen = self.expect(TokenType::RParen, "expecting right paren");
                     if rexpr.is_err() { return Err(rexpr.unwrap_err()); }
                     if rparen.is_err() { return Err(rparen.unwrap_err()); }
+                    let rexpr = rexpr.unwrap();
 
-                    return Ok(Expr::DottedPair(lexprs, Box::new(rexpr.unwrap())));
+                    if rexpr.is_list() {
+                        let rexpr = rexpr.to_vec().unwrap();
+                        lexprs.append(&mut rexpr.clone());
+                        return Ok(Expr::List(lexprs));
+                    } else {
+                        return Ok(Expr::DottedPair(lexprs, Box::new(rexpr)));
+                    }
 
                 // List
                 } else if self.match_token(vec![TokenType::RParen]) {
