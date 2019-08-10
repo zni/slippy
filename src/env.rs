@@ -25,6 +25,7 @@ impl Env {
         global.insert(String::from("cons"), Expr::Builtin(builtins::cons));
         global.insert(String::from("append"), Expr::Builtin(builtins::append));
         global.insert(String::from("length"), Expr::Builtin(builtins::length));
+        global.insert(String::from("equal?"), Expr::Builtin(builtins::equalp));
         global.insert(String::from("list?"), Expr::Builtin(builtins::listp));
         global.insert(String::from("null?"), Expr::Builtin(builtins::nullp));
         global.insert(String::from("number?"), Expr::Builtin(builtins::numberp));

@@ -1,4 +1,5 @@
 use std::fmt;
+use std::cmp::PartialEq;
 
 use crate::env::Env;
 
@@ -97,7 +98,6 @@ pub enum Expr {
     Lambda(Vec<Expr>, Vec<Expr>, Env),
     Var(String),
     Literal(Literal),
-    Quote(Box<Expr>),
     Builtin(fn(&[Expr], &mut Env) -> Result<Expr, &'static str>),
     Unspecified,
 }
@@ -130,6 +130,88 @@ impl Expr {
             _ => None,
         }
     }
+
+    pub fn is_var(&self) -> bool {
+        match self {
+            Expr::Var(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn from_var(&self) -> Option<String> {
+        match self {
+            Expr::Var(v) => Some(v.clone()),
+            _ => None,
+        }
+    }
+
+    pub fn is_dotted_pair(&self) -> bool {
+        match self {
+            Expr::DottedPair(_, _) => true,
+            _ => false,
+        }
+    }
+
+    pub fn from_dotted_pair(&self) -> Option<(Vec<Expr>, Box<Expr>)> {
+        match self {
+            Expr::DottedPair(car, cdr) => Some((car.clone(), cdr.clone())),
+            _ => None,
+        }
+    }
+}
+
+impl PartialEq for Expr {
+    fn eq(&self, other: &Self) -> bool {
+        if self.is_literal() && other.is_literal() {
+            let lval = self.to_literal().unwrap();
+            let rval = other.to_literal().unwrap();
+            return lval == rval;
+        } else if self.is_var() && other.is_var() {
+            let lval = self.from_var().unwrap();
+            let rval = other.from_var().unwrap();
+            return lval == rval;
+        } else if self.is_list() && other.is_list() {
+            let lval = self.to_vec().unwrap();
+            let rval = self.to_vec().unwrap();
+
+            if lval.len() != rval.len() {
+                return false;
+            }
+
+            for (l, r) in lval.iter().zip(rval) {
+                if l.eq(&r) {
+                    continue
+                } else {
+                    return false;
+                }
+            }
+
+            return true;
+        } else if self.is_dotted_pair() && other.is_dotted_pair() {
+            let (lcar, lcdr) = self.from_dotted_pair().unwrap();
+            let (rcar, rcdr) = other.from_dotted_pair().unwrap();
+
+            if lcar.len() != rcar.len() {
+                return false;
+            }
+
+            if !lcdr.eq(&rcdr) {
+                return false
+            }
+
+            for (l, r) in lcar.iter().zip(rcar) {
+                if l.eq(&r) {
+                    continue
+                } else {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
 }
 
 impl fmt::Display for Expr {
@@ -158,13 +240,13 @@ impl fmt::Display for Expr {
                 write!(f, ")")
             },
             Expr::Lambda(_, _, _) => {
-                write!(f, "<procedure>")
+                write!(f, "#<procedure>")
             },
             Expr::Var(t) => write!(f, "{}", t),
             Expr::Literal(t) => write!(f, "{}", t),
-            Expr::Quote(t) => write!(f, "(quote {})", t),
+            //Expr::Quote(t) => write!(f, "(quote {})", t),
             Expr::Builtin(_) => {
-                write!(f, "<built-in procedure>")
+                write!(f, "#<built-in procedure>")
             },
             Expr::Unspecified => write!(f, "#unspecified"),
         }
@@ -197,13 +279,13 @@ impl fmt::Debug for Expr {
                 write!(f, ")")
             },
             Expr::Lambda(_, _, _) => {
-                write!(f, "<procedure>")
+                write!(f, "#<procedure>")
             },
             Expr::Var(t) => write!(f, "{}", t),
             Expr::Literal(t) => write!(f, "{}", t),
-            Expr::Quote(t) => write!(f, "(quote {})", t),
+            //Expr::Quote(t) => write!(f, "(quote {})", t),
             Expr::Builtin(_) => {
-                write!(f, "<built-in procedure>")
+                write!(f, "#<built-in procedure>")
             },
             Expr::Unspecified => write!(f, "#unspecified"),
         }

@@ -187,15 +187,9 @@ pub fn sub(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
  * List built-ins
  */
 
-pub fn list(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+pub fn list(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     let mut new_list = Vec::new();
-    for val in list.iter() {
-        let val = eval(val.clone(), env);
-        if val.is_err() { return val }
-        let val = val.unwrap();
-
-        new_list.push(val);
-    }
+    for val in list.iter() { new_list.push(val.clone()); }
 
     Ok(Expr::List(new_list))
 }
@@ -295,6 +289,15 @@ pub fn length(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
 /*
  * Tests
  */
+
+pub fn equalp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 2 { return Err("called with incorrect number of arguments") }
+
+    let lval = &list[0];
+    let rval = &list[1];
+
+    return Ok(Expr::Literal(Literal::Bool(lval == rval)));
+}
 
 pub fn listp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
