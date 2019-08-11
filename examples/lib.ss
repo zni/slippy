@@ -1,6 +1,23 @@
 ;; lib.ss
 ;; library functions
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; numerical functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (zero? n)
+  (= n 0))
+
+(define (positive? n)
+  (> n 0))
+
+(define (negative? n)
+  (< n 0))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; list functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (define (caar list)
   (car (car list)))
 
@@ -85,3 +102,12 @@
 (define (cdaddr list)
   (cdr (car (cdr (cdr list)))))
 
+(define (list-tail x k)
+  (if (zero? k)
+      x
+      (list-tail (cdr x) (- k 1))))
+
+(define (list-ref x k)
+  (if (zero? k)
+      (car x)
+      (list-ref (cdr x) (- k 1))))

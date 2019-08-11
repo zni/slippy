@@ -285,6 +285,22 @@ pub fn length(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     return Ok(Expr::Literal(Literal::Number(size)));
 }
 
+pub fn reverse(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 1 { return Err("called with incorrect number of arguments") }
+
+    let listval = &list[0];
+    if !listval.is_list() {
+        return Err("reverse called with incorrect type")
+    }
+
+    let mut listval = listval.to_vec().unwrap();
+    let mut revlist = Vec::new();
+    for n in listval.iter().rev() {
+        revlist.push(n.clone())
+    }
+    return Ok(Expr::List(revlist));
+}
+
 
 /*
  * Tests
@@ -356,6 +372,22 @@ pub fn symbolp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
+pub fn pairp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 1 { return Err("called with incorrect number of arguments") }
+
+    match &list[0] {
+        Expr::DottedPair(_, _) => Ok(Expr::Literal(Literal::Bool(true))),
+        Expr::List(l) => {
+            if l.is_empty() {
+                return Ok(Expr::Literal(Literal::Bool(false)))
+            } else {
+                return Ok(Expr::Literal(Literal::Bool(true)))
+            }
+        },
+        _ => Ok(Expr::Literal(Literal::Bool(false))),
+    }
+}
+
 
 /*
  * Other
@@ -412,9 +444,7 @@ pub fn load(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
         let exprs = result.unwrap();
         for expr in exprs.iter() {
             let eval_result = eval(expr.clone(), env);
-            if eval_result.is_ok() {
-                println!("{}", eval_result.unwrap());
-            } else {
+            if eval_result.is_err() {
                 println!("{}", eval_result.unwrap_err());
             }
         }

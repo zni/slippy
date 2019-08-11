@@ -25,12 +25,14 @@ impl Env {
         global.insert(String::from("cons"), Expr::Builtin(builtins::cons));
         global.insert(String::from("append"), Expr::Builtin(builtins::append));
         global.insert(String::from("length"), Expr::Builtin(builtins::length));
+        global.insert(String::from("reverse"), Expr::Builtin(builtins::reverse));
         global.insert(String::from("equal?"), Expr::Builtin(builtins::equalp));
         global.insert(String::from("list?"), Expr::Builtin(builtins::listp));
         global.insert(String::from("null?"), Expr::Builtin(builtins::nullp));
         global.insert(String::from("number?"), Expr::Builtin(builtins::numberp));
         global.insert(String::from("procedure?"), Expr::Builtin(builtins::procedurep));
         global.insert(String::from("symbol?"), Expr::Builtin(builtins::symbolp));
+        global.insert(String::from("pair?"), Expr::Builtin(builtins::pairp));
         global.insert(String::from("apply"), Expr::Builtin(builtins::apply));
         global.insert(String::from("load"), Expr::Builtin(builtins::load));
         env.push(global);
