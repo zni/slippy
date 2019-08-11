@@ -50,6 +50,11 @@ impl Lexer {
                     self.add_literal_token(TokenType::Bool, Some(Literal::Bool(false)))
                 }
             },
+            ';'  => {
+                while (self.peek() != '\n') && !self.is_at_end() {
+                    self.advance();
+                }
+            },
             '\t' => (),
             '\r' => (),
             '\n' => self.line += 1,
