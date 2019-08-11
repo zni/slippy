@@ -76,7 +76,7 @@ fn lambda(list: &[Expr], env: &Env) -> Result<Expr, &'static str> {
     if let Expr::List(args) = &list[1] {
         let body = &list[2..list.len()];
 
-        Ok(Expr::Lambda(args.to_vec(), body.to_vec(), env.clone()))
+        Ok(Expr::Lambda(args.to_vec(), body.to_vec()))
     } else {
         Err("not implemented")
     }
@@ -97,7 +97,7 @@ fn define(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 
             env.insert(
                 vars[0].to_string(),
-                Expr::Lambda(args, list[2..list.len()].to_vec(), env.clone())
+                Expr::Lambda(args, list[2..list.len()].to_vec())
             );
 
             Ok(Expr::Unspecified)
@@ -173,7 +173,7 @@ fn begin(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 
 pub fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
     match proc {
-        Expr::Lambda(parms, body, _) => {
+        Expr::Lambda(parms, body) => {
             if parms.len() != args.len() { return Err("applied to incorrect number of args") }
 
             env.extend_env();

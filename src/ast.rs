@@ -95,7 +95,7 @@ impl fmt::Debug for Token {
 pub enum Expr {
     DottedPair(Vec<Expr>, Box<Expr>),
     List(Vec<Expr>),
-    Lambda(Vec<Expr>, Vec<Expr>, Env),
+    Lambda(Vec<Expr>, Vec<Expr>),
     Var(String),
     Literal(Literal),
     Builtin(fn(&[Expr], &mut Env) -> Result<Expr, &'static str>),
@@ -239,12 +239,11 @@ impl fmt::Display for Expr {
                 }
                 write!(f, ")")
             },
-            Expr::Lambda(_, _, _) => {
+            Expr::Lambda(_, _) => {
                 write!(f, "#<procedure>")
             },
             Expr::Var(t) => write!(f, "{}", t),
             Expr::Literal(t) => write!(f, "{}", t),
-            //Expr::Quote(t) => write!(f, "(quote {})", t),
             Expr::Builtin(_) => {
                 write!(f, "#<built-in procedure>")
             },
@@ -278,12 +277,11 @@ impl fmt::Debug for Expr {
                 }
                 write!(f, ")")
             },
-            Expr::Lambda(_, _, _) => {
+            Expr::Lambda(_, _) => {
                 write!(f, "#<procedure>")
             },
             Expr::Var(t) => write!(f, "{}", t),
             Expr::Literal(t) => write!(f, "{}", t),
-            //Expr::Quote(t) => write!(f, "(quote {})", t),
             Expr::Builtin(_) => {
                 write!(f, "#<built-in procedure>")
             },

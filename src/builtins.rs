@@ -327,7 +327,7 @@ pub fn procedurep(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
     match &list[0] {
-        Expr::Lambda(_, _, _) => {
+        Expr::Lambda(_, _) => {
             Ok(Expr::Literal(Literal::Bool(true)))
         },
         Expr::Builtin(_) => {
