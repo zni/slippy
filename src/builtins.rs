@@ -293,7 +293,7 @@ pub fn reverse(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
         return Err("reverse called with incorrect type")
     }
 
-    let mut listval = listval.to_vec().unwrap();
+    let listval = listval.to_vec().unwrap();
     let mut revlist = Vec::new();
     for n in listval.iter().rev() {
         revlist.push(n.clone())

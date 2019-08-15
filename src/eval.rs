@@ -19,6 +19,7 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
                         "quote"  => quote(&list, env),
                         "set!"   => set(&list, env),
                         "begin"  => begin(&list, env),
+                        "let"    => let_(&list, env),
                         _ => {
                             let var = env.get(atom.to_string());
                             if var.is_none() { return Err("undefined variable"); }
@@ -72,7 +73,7 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-fn lambda(list: &[Expr], env: &Env) -> Result<Expr, &'static str> {
+fn lambda(list: &[Expr], _env: &Env) -> Result<Expr, &'static str> {
     if let Expr::List(args) = &list[1] {
         let body = &list[2..list.len()];
 
@@ -167,6 +168,33 @@ fn begin(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     for expr in list.iter().skip(1) {
         result = eval(expr.clone(), env);
     }
+
+    result
+}
+
+fn let_(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+    let decs = &list[1];
+    if !decs.is_list() { return Err("expecting list of declarations") }
+    let decs = decs.to_vec().unwrap();
+
+    env.extend_env();
+    for dec in decs.iter() {
+        if !dec.is_list() { return Err("expecting a pair") }
+        let dec = dec.to_vec().unwrap();
+        let var = &dec[0];
+        let val = &dec[1];
+
+        if !var.is_var() { return Err("expecting an atom in let declaration pair") }
+        let var = var.from_var().unwrap();
+        env.insert(var, val.clone());
+    }
+
+    let mut result = Ok(Expr::Unspecified);
+    let exprs = &list[2..list.len()];
+    for expr in exprs.iter() {
+        result = eval(expr.clone(), env);
+    }
+    env.pop_env();
 
     result
 }
