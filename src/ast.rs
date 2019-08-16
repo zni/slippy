@@ -210,7 +210,7 @@ impl PartialEq for Expr {
             return true;
         }
 
-        return false;
+        false
     }
 }
 

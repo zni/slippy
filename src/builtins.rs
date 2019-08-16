@@ -282,7 +282,7 @@ pub fn length(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 
     let size = listval.to_vec().unwrap().len() as i32;
-    return Ok(Expr::Literal(Literal::Number(size)));
+    Ok(Expr::Literal(Literal::Number(size)))
 }
 
 pub fn reverse(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
@@ -298,7 +298,7 @@ pub fn reverse(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     for n in listval.iter().rev() {
         revlist.push(n.clone())
     }
-    return Ok(Expr::List(revlist));
+    Ok(Expr::List(revlist))
 }
 
 
@@ -312,7 +312,7 @@ pub fn equalp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     let lval = &list[0];
     let rval = &list[1];
 
-    return Ok(Expr::Literal(Literal::Bool(lval == rval)));
+    Ok(Expr::Literal(Literal::Bool(lval == rval)))
 }
 
 pub fn listp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
@@ -379,9 +379,9 @@ pub fn pairp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
         Expr::DottedPair(_, _) => Ok(Expr::Literal(Literal::Bool(true))),
         Expr::List(l) => {
             if l.is_empty() {
-                return Ok(Expr::Literal(Literal::Bool(false)))
+                Ok(Expr::Literal(Literal::Bool(false)))
             } else {
-                return Ok(Expr::Literal(Literal::Bool(true)))
+                Ok(Expr::Literal(Literal::Bool(true)))
             }
         },
         _ => Ok(Expr::Literal(Literal::Bool(false))),
