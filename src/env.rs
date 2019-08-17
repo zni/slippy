@@ -36,6 +36,7 @@ impl Env {
         global.insert(String::from("apply"), Expr::Builtin(builtins::apply));
         global.insert(String::from("load"), Expr::Builtin(builtins::load));
         global.insert(String::from("read"), Expr::Builtin(builtins::read));
+        global.insert(String::from("display"), Expr::Builtin(builtins::display));
         env.push(global);
         Env { env }
     }

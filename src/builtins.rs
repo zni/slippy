@@ -481,3 +481,12 @@ pub fn read(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 
     Err("read error")
 }
+
+pub fn display(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 1 { return Err("output ports are not yet supported for display") }
+
+    let expr = &list[0];
+    println!("{}", expr);
+
+    Ok(Expr::Unspecified)
+}

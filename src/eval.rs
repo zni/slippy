@@ -174,8 +174,6 @@ fn begin(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 }
 
 fn let_(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
-    let mut prev_env = env.clone();
-
     let decs = &list[1];
     if !decs.is_list() { return Err("expecting list of declarations") }
     let decs = decs.to_vec().unwrap();
@@ -186,7 +184,7 @@ fn let_(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
         let var = &dec[0];
 
         let val = &dec[1];
-        let val = eval(val.clone(), &mut prev_env);
+        let val = eval(val.clone(), env);
         if val.is_err() { return val }
         let val = val.unwrap();
 
