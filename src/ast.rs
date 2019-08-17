@@ -131,6 +131,20 @@ impl Expr {
         }
     }
 
+    pub fn is_true(&self) -> bool {
+        match self {
+            Expr::Literal(Literal::Bool(true)) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_false(&self) -> bool {
+        match self {
+            Expr::Literal(Literal::Bool(false)) => true,
+            _ => false,
+        }
+    }
+
     pub fn is_var(&self) -> bool {
         match self {
             Expr::Var(_) => true,
@@ -156,6 +170,13 @@ impl Expr {
         match self {
             Expr::DottedPair(car, cdr) => Some((car.clone(), cdr.clone())),
             _ => None,
+        }
+    }
+
+    pub fn is_unspecified(&self) -> bool {
+        match self {
+            Expr::Unspecified => true,
+            _ => false,
         }
     }
 }

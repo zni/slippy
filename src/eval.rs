@@ -20,6 +20,7 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
                         "set!"   => set(&list, env),
                         "begin"  => begin(&list, env),
                         "let"    => let_(&list, env),
+                        "cond"   => cond(&list, env),
                         _ => {
                             let var = env.get(atom.to_string());
                             if var.is_none() { return Err("undefined variable"); }
@@ -108,7 +109,7 @@ fn define(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
             let val = eval(val.clone(), env);
             if val.is_err() { return val; }
             let val = val.unwrap();
-            if is_unspecified(&val) {
+            if val.is_unspecified() {
                 return Err("unspecified value cannot be used as an expression")
             }
 
@@ -204,6 +205,33 @@ fn let_(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     result
 }
 
+fn cond(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+    let conditions = &list[1..list.len()];
+    for condition in conditions.iter() {
+        if !condition.is_list() { return Err("expecting a list in cond") }
+        let list = condition.to_vec().unwrap();
+        if list.len() != 2 { return Err("invalid format in cond") }
+
+        let pred = &list[0];
+        if pred.is_var() {
+            let else_ = pred.from_var().unwrap();
+            if else_ == "else" {
+                return eval(list[1].clone(), env);
+            } else {
+                return Err("expecting else in cond");
+            }
+        }
+
+        let pred_result = eval(pred.clone(), env);
+        if pred_result.is_err() { return pred_result }
+        if pred_result.unwrap().is_true() {
+            return eval(list[1].clone(), env)
+        }
+    }
+
+    Ok(Expr::Unspecified)
+}
+
 pub fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
     match proc {
         Expr::Lambda(parms, body) => {
@@ -211,7 +239,7 @@ pub fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'stati
 
             env.extend_env();
             for (p, a) in parms.iter().zip(args) {
-                env.insert(from_var(p).unwrap(), a);
+                env.insert(p.from_var().unwrap(), a);
             }
 
             let mut result = Ok(Expr::Unspecified);
@@ -226,21 +254,5 @@ pub fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'stati
             builtin(&args, env)
         }
         _ => Err("unable to apply"),
-    }
-}
-
-fn from_var(var: &Expr) -> Option<String> {
-   if let Expr::Var(atom) = var {
-       Some(atom.to_string())
-   } else {
-       None
-   }
-}
-
-fn is_unspecified(var: &Expr) -> bool {
-    if let Expr::Unspecified = var {
-        return true;
-    } else {
-        return false;
     }
 }
