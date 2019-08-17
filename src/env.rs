@@ -35,6 +35,7 @@ impl Env {
         global.insert(String::from("pair?"), Expr::Builtin(builtins::pairp));
         global.insert(String::from("apply"), Expr::Builtin(builtins::apply));
         global.insert(String::from("load"), Expr::Builtin(builtins::load));
+        global.insert(String::from("read"), Expr::Builtin(builtins::read));
         env.push(global);
         Env { env }
     }

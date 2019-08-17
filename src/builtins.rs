@@ -1,5 +1,6 @@
 use std::ops::Neg;
 use std::fs::File;
+use std::io;
 use std::io::prelude::*;
 use std::path::Path;
 
@@ -454,4 +455,29 @@ pub fn load(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     }
 
     Ok(Expr::Unspecified)
+}
+
+pub fn read(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+    if list.len() != 0 { return Err("input ports are not yet supported for read") }
+
+    let mut line = String::new();
+    io::stdin().read_line(&mut line)
+        .expect("Failed to read line.");
+
+    let line = format!("'{}", line.trim());
+    let mut lexer = Lexer::new(&line);
+    lexer.scan();
+    let mut parser = Parser::new(lexer.tokens);
+    let result = parser.parse();
+    if result.is_ok() {
+        let exprs = result.unwrap();
+        for expr in exprs.iter() {
+            return eval(expr.clone(), env);
+        }
+    } else {
+        println!("{}", result.unwrap_err());
+        println!("pos: {}", parser.current);
+    }
+
+    Err("read error")
 }
