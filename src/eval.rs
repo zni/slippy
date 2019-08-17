@@ -173,16 +173,21 @@ fn begin(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 }
 
 fn let_(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+    let mut prev_env = env.clone();
+
     let decs = &list[1];
     if !decs.is_list() { return Err("expecting list of declarations") }
     let decs = decs.to_vec().unwrap();
-
     env.extend_env();
     for dec in decs.iter() {
         if !dec.is_list() { return Err("expecting a pair") }
         let dec = dec.to_vec().unwrap();
         let var = &dec[0];
+
         let val = &dec[1];
+        let val = eval(val.clone(), &mut prev_env);
+        if val.is_err() { return val }
+        let val = val.unwrap();
 
         if !var.is_var() { return Err("expecting an atom in let declaration pair") }
         let var = var.from_var().unwrap();
