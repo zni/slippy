@@ -2,11 +2,11 @@ use crate::ast::{Expr, Literal};
 use crate::env::Env;
 
 
-pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
+pub fn eval(program: &Expr, env: &mut Env) -> Result<Expr, &'static str> {
     match program {
         Expr::List(list) => {
             if list.is_empty() {
-                return Ok(Expr::List(list))
+                return Ok(Expr::List(list.to_vec()))
             }
 
             let head = &list[0];
@@ -22,18 +22,17 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
                         "let"    => let_(&list, env),
                         "cond"   => cond(&list, env),
                         _ => {
-                            let var = env.get(atom.to_string());
-                            if var.is_none() { return Err("undefined variable"); }
-                            let proc = var.unwrap();
-
                             let mut args = Vec::new();
                             for op in &list[1..list.len()] {
-                                let result = eval(op.clone(), &mut env.clone());
+                                let result = eval(op, env);
                                 if result.is_err() { return result; }
 
                                 args.push(result.unwrap());
                             }
 
+                            let var = env.get(atom.to_string());
+                            if var.is_none() { return Err("undefined variable"); }
+                            let proc = var.unwrap();
                             apply(proc.clone(), args, env)
                         },
                     }
@@ -42,12 +41,12 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
                     Err("not applicable")
                 },
                 Expr::List(_) => {
-                    let proc = eval(head.clone(), env);
+                    let proc = eval(head, env);
                     if proc.is_err() { return proc }
 
                     let mut args = Vec::new();
                     for op in &list[1..list.len()] {
-                        let result = eval(op.clone(), env);
+                        let result = eval(op, env);
                         if result.is_err() { return result; }
 
                         args.push(result.unwrap());
@@ -60,7 +59,7 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
         },
 
         Expr::Var(atom) => {
-            let var = env.get(atom);
+            let var = env.get(atom.to_string());
             match var {
                 Some(val) => Ok(val.clone()),
                 None => {
@@ -69,7 +68,7 @@ pub fn eval(program: Expr, env: &mut Env) -> Result<Expr, &'static str> {
             }
         },
 
-        Expr::Literal(l) => Ok(Expr::Literal(l)),
+        Expr::Literal(l) => Ok(Expr::Literal(l.clone())),
         _ => Err("not implemented"),
     }
 }
@@ -106,7 +105,7 @@ fn define(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
         },
         Expr::Var(atom) => {
             let val = &list[2];
-            let val = eval(val.clone(), env);
+            let val = eval(val, env);
             if val.is_err() { return val; }
             let val = val.unwrap();
             if val.is_unspecified() {
@@ -122,7 +121,7 @@ fn define(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 }
 
 fn ifexpr(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
-    let test = eval(list[1].clone(), env);
+    let test = eval(&list[1], env);
     if test.is_err() { return test }
     let test = test.unwrap();
 
@@ -130,10 +129,10 @@ fn ifexpr(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
         if list.len() == 3 { return Ok(Expr::Unspecified) }
 
         let alternate = &list[3];
-        return eval(alternate.clone(), env);
+        return eval(alternate, env);
     } else {
         let consequent = &list[2];
-        return eval(consequent.clone(), env);
+        return eval(consequent, env);
     }
 }
 
@@ -149,7 +148,7 @@ fn set(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     match var {
         Expr::Var(atom) => {
             let val = &list[2];
-            let val = eval(val.clone(), env);
+            let val = eval(val, env);
             if val.is_err() { return val; }
             let val = val.unwrap();
 
@@ -167,7 +166,7 @@ fn set(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 fn begin(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     let mut result = Ok(Expr::Unspecified);
     for expr in list.iter().skip(1) {
-        result = eval(expr.clone(), env);
+        result = eval(expr, env);
     }
 
     result
@@ -184,7 +183,7 @@ fn let_(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
         let var = &dec[0];
 
         let val = &dec[1];
-        let val = eval(val.clone(), env);
+        let val = eval(val, env);
         if val.is_err() { return val }
         let val = val.unwrap();
 
@@ -196,7 +195,7 @@ fn let_(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     let mut result = Ok(Expr::Unspecified);
     let exprs = &list[2..list.len()];
     for expr in exprs.iter() {
-        result = eval(expr.clone(), env);
+        result = eval(expr, env);
     }
     env.pop_env();
 
@@ -214,16 +213,16 @@ fn cond(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
         if pred.is_var() {
             let else_ = pred.from_var().unwrap();
             if else_ == "else" {
-                return eval(list[1].clone(), env);
+                return eval(&list[1], env);
             } else {
                 return Err("expecting else in cond");
             }
         }
 
-        let pred_result = eval(pred.clone(), env);
+        let pred_result = eval(pred, env);
         if pred_result.is_err() { return pred_result }
         if pred_result.unwrap().is_true() {
-            return eval(list[1].clone(), env)
+            return eval(&list[1], env)
         }
     }
 
@@ -242,7 +241,7 @@ pub fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'stati
 
             let mut result = Ok(Expr::Unspecified);
             for expr in body {
-                result = eval(expr, env);
+                result = eval(&expr, env);
             }
             env.pop_env();
 

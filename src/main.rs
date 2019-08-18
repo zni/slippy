@@ -64,7 +64,7 @@ fn run(source: &String, mut env: &mut Env) {
     if result.is_ok() {
         let exprs = result.unwrap();
         for expr in exprs.iter() {
-            let eval_result = eval(expr.clone(), &mut env);
+            let eval_result = eval(expr, &mut env);
             if eval_result.is_ok() {
                 println!("{}", eval_result.unwrap());
             } else {

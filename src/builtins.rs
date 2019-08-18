@@ -123,7 +123,7 @@ pub fn gte(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
 pub fn add(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     let mut result: i32 = 0;
     for val in list.iter() {
-        let val = eval(val.clone(), env);
+        let val = eval(val, env);
         if val.is_err() { return val }
         let val = val.unwrap();
         match val {
@@ -139,7 +139,7 @@ pub fn add(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 pub fn mul(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     let mut result: i32 = 1;
     for val in list.iter() {
-        let val = eval(val.clone(), env);
+        let val = eval(val, env);
         if val.is_err() { return val }
         let val = val.unwrap();
         match val {
@@ -156,7 +156,7 @@ pub fn sub(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     if list.is_empty() { return Err("- requires at least one argument") }
 
     let val = &list[0];
-    let val = eval(val.clone(), env);
+    let val = eval(val, env);
     if val.is_err() { return val }
     let val = val.unwrap();
     let mut result = match val {
@@ -170,7 +170,7 @@ pub fn sub(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     }
 
     for val in list.iter().skip(1) {
-        let val = eval(val.clone(), env);
+        let val = eval(val, env);
         if val.is_err() { return val }
         let val = val.unwrap();
         match val {
@@ -444,7 +444,7 @@ pub fn load(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     if result.is_ok() {
         let exprs = result.unwrap();
         for expr in exprs.iter() {
-            let eval_result = eval(expr.clone(), env);
+            let eval_result = eval(expr, env);
             if eval_result.is_err() {
                 println!("{}", eval_result.unwrap_err());
             }
@@ -472,7 +472,7 @@ pub fn read(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     if result.is_ok() {
         let exprs = result.unwrap();
         for expr in exprs.iter() {
-            return eval(expr.clone(), env);
+            return eval(expr, env);
         }
     } else {
         println!("{}", result.unwrap_err());
