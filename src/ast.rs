@@ -1,5 +1,7 @@
 use std::fmt;
 use std::cmp::PartialEq;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 use crate::env::Env;
 
@@ -98,7 +100,7 @@ pub enum Expr {
     Lambda(Vec<Expr>, Vec<Expr>),
     Var(String),
     Literal(Literal),
-    Builtin(fn(&[Expr], &mut Env) -> Result<Expr, &'static str>),
+    Builtin(fn(&[Expr], Rc<RefCell<Env>>) -> Result<Expr, &'static str>),
     Unspecified,
 }
 

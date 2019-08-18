@@ -1,8 +1,11 @@
 use crate::ast::{Expr, Literal};
 use crate::env::Env;
 
+use std::cell::RefCell;
+use std::rc::Rc;
 
-pub fn eval(program: &Expr, env: &mut Env) -> Result<Expr, &'static str> {
+
+pub fn eval(program: &Expr, env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     match program {
         Expr::List(list) => {
             if list.is_empty() {
@@ -24,13 +27,13 @@ pub fn eval(program: &Expr, env: &mut Env) -> Result<Expr, &'static str> {
                         _ => {
                             let mut args = Vec::new();
                             for op in &list[1..list.len()] {
-                                let result = eval(op, env);
+                                let result = eval(op, env.clone());
                                 if result.is_err() { return result; }
 
                                 args.push(result.unwrap());
                             }
 
-                            let var = env.get(&atom);
+                            let var = env.borrow().get(&atom);
                             if var.is_none() { return Err("undefined variable"); }
                             let proc = var.unwrap();
                             apply(&proc, args, env)
@@ -41,12 +44,12 @@ pub fn eval(program: &Expr, env: &mut Env) -> Result<Expr, &'static str> {
                     Err("not applicable")
                 },
                 Expr::List(_) => {
-                    let proc = eval(head, env);
+                    let proc = eval(head, env.clone());
                     if proc.is_err() { return proc }
 
                     let mut args = Vec::new();
                     for op in &list[1..list.len()] {
-                        let result = eval(op, env);
+                        let result = eval(op, env.clone());
                         if result.is_err() { return result; }
 
                         args.push(result.unwrap());
@@ -59,7 +62,7 @@ pub fn eval(program: &Expr, env: &mut Env) -> Result<Expr, &'static str> {
         },
 
         Expr::Var(atom) => {
-            let var = env.get(&atom);
+            let var = env.borrow().get(&atom);
             match var {
                 Some(val) => Ok(val.clone()),
                 None => {
@@ -73,7 +76,7 @@ pub fn eval(program: &Expr, env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-fn lambda(list: &[Expr], _env: &Env) -> Result<Expr, &'static str> {
+fn lambda(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if let Expr::List(args) = &list[1] {
         let body = &list[2..list.len()];
 
@@ -83,7 +86,7 @@ fn lambda(list: &[Expr], _env: &Env) -> Result<Expr, &'static str> {
     }
 }
 
-fn define(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+fn define(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() < 3 { return Err("invalid define statement"); }
 
     match &list[1] {
@@ -96,7 +99,7 @@ fn define(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
                 vars[1..vars.len()].to_vec()
             };
 
-            env.insert(
+            env.borrow_mut().insert(
                 vars[0].to_string(),
                 Expr::Lambda(args, list[2..list.len()].to_vec())
             );
@@ -105,14 +108,14 @@ fn define(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
         },
         Expr::Var(atom) => {
             let val = &list[2];
-            let val = eval(val, env);
+            let val = eval(val, env.clone());
             if val.is_err() { return val; }
             let val = val.unwrap();
             if val.is_unspecified() {
                 return Err("unspecified value cannot be used as an expression")
             }
 
-            env.insert(atom.to_string(), val.clone());
+            env.borrow_mut().insert(atom.to_string(), val.clone());
 
             Ok(Expr::Unspecified)
         },
@@ -120,8 +123,8 @@ fn define(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-fn ifexpr(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
-    let test = eval(&list[1], env);
+fn ifexpr(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
+    let test = eval(&list[1], env.clone());
     if test.is_err() { return test }
     let test = test.unwrap();
 
@@ -136,23 +139,23 @@ fn ifexpr(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-fn quote(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+fn quote(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 2 { return Err("invalid quote syntax") }
     Ok(list[1].clone())
 }
 
-fn set(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+fn set(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 3 { return Err("invalid set syntax") }
 
     let var = &list[1];
     match var {
         Expr::Var(atom) => {
             let val = &list[2];
-            let val = eval(val, env);
+            let val = eval(val, env.clone());
             if val.is_err() { return val; }
             let val = val.unwrap();
 
-            let result = env.set(atom.to_string(), val);
+            let result = env.borrow_mut().set(atom.to_string(), val);
             if result.is_ok() {
                 Ok(Expr::Unspecified)
             } else {
@@ -163,46 +166,45 @@ fn set(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-fn begin(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+fn begin(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     let mut result = Ok(Expr::Unspecified);
     for expr in list.iter().skip(1) {
-        result = eval(expr, env);
+        result = eval(expr, env.clone());
     }
 
     result
 }
 
-fn let_(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+fn let_(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     let decs = &list[1];
     if !decs.is_list() { return Err("expecting list of declarations") }
     let decs = decs.to_vec().unwrap();
-    env.extend_env();
+    let let_env = env.borrow_mut().extend_env(env.clone());
     for dec in decs.iter() {
         if !dec.is_list() { return Err("expecting a pair") }
         let dec = dec.to_vec().unwrap();
         let var = &dec[0];
 
         let val = &dec[1];
-        let val = eval(val, env);
+        let val = eval(val, env.clone());
         if val.is_err() { return val }
         let val = val.unwrap();
 
         if !var.is_var() { return Err("expecting an atom in let declaration pair") }
         let var = var.from_var().unwrap();
-        env.insert(var, val.clone());
+        let_env.borrow_mut().insert(var, val.clone());
     }
 
     let mut result = Ok(Expr::Unspecified);
     let exprs = &list[2..list.len()];
     for expr in exprs.iter() {
-        result = eval(expr, env);
+        result = eval(expr, let_env.clone());
     }
-    env.pop_env();
 
     result
 }
 
-fn cond(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+fn cond(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     let conditions = &list[1..list.len()];
     for condition in conditions.iter() {
         if !condition.is_list() { return Err("expecting a list in cond") }
@@ -213,13 +215,13 @@ fn cond(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
         if pred.is_var() {
             let else_ = pred.from_var().unwrap();
             if else_ == "else" {
-                return eval(&list[1], env);
+                return eval(&list[1], env.clone());
             } else {
                 return Err("expecting else in cond");
             }
         }
 
-        let pred_result = eval(pred, env);
+        let pred_result = eval(pred, env.clone());
         if pred_result.is_err() { return pred_result }
         if pred_result.unwrap().is_true() {
             return eval(&list[1], env)
@@ -229,21 +231,20 @@ fn cond(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Unspecified)
 }
 
-pub fn apply(proc: &Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
+pub fn apply(proc: &Expr, args: Vec<Expr>, env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     match proc {
         Expr::Lambda(parms, body) => {
             if parms.len() != args.len() { return Err("applied to incorrect number of args") }
 
-            env.extend_env();
+            let proc_env = env.borrow_mut().extend_env(env.clone());
             for (p, a) in parms.iter().zip(args) {
-                env.insert(p.from_var().unwrap(), a);
+                proc_env.borrow_mut().insert(p.from_var().unwrap(), a);
             }
 
             let mut result = Ok(Expr::Unspecified);
             for expr in body {
-                result = eval(&expr, env);
+                result = eval(&expr, proc_env.clone());
             }
-            env.pop_env();
 
             result
         },

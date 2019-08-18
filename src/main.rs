@@ -4,6 +4,9 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::process;
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 extern crate rustyline;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -26,7 +29,7 @@ fn main() {
 }
 
 fn run_file(file: &String) {
-    let mut env = Env::new();
+    let env = Env::new();
 
     let path = Path::new(file);
     let mut file = File::open(&path)
@@ -36,18 +39,18 @@ fn run_file(file: &String) {
     file.read_to_string(&mut source)
         .expect("Failed to read file");
 
-    run(&source, &mut env);
+    run(&source, env);
 }
 
 fn run_prompt() {
     let mut rl = Editor::<()>::new();
-    let mut env = Env::new();
+    let env = Env::new();
     loop {
         let readline = rl.readline("slippy> ");
         match readline {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
-                run(&line, &mut env);
+                run(&line, env.clone());
             },
             Err(ReadlineError::Interrupted) => break,
             Err(ReadlineError::Eof) => break,
@@ -56,7 +59,7 @@ fn run_prompt() {
     }
 }
 
-fn run(source: &String, mut env: &mut Env) {
+fn run(source: &String, env: Rc<RefCell<Env>>) {
     let mut lexer = Lexer::new(&source);
     lexer.scan();
     let mut parser = Parser::new(lexer.tokens);
@@ -64,7 +67,7 @@ fn run(source: &String, mut env: &mut Env) {
     if result.is_ok() {
         let exprs = result.unwrap();
         for expr in exprs.iter() {
-            let eval_result = eval(expr, &mut env);
+            let eval_result = eval(expr, env.clone());
             if eval_result.is_ok() {
                 println!("{}", eval_result.unwrap());
             } else {

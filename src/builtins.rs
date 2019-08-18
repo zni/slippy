@@ -4,6 +4,9 @@ use std::io;
 use std::io::prelude::*;
 use std::path::Path;
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::eval;
 use crate::eval::eval;
 use crate::env::Env;
@@ -15,7 +18,7 @@ use crate::parser::Parser;
  * Numerical built-ins
  */
 
-pub fn equal(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn equal(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     let previous = match &list[0] {
         Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
         Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
@@ -36,7 +39,7 @@ pub fn equal(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Literal(Literal::Bool(true)))
 }
 
-pub fn lt(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn lt(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     let previous = match &list[0] {
         Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
         Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
@@ -57,7 +60,7 @@ pub fn lt(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Literal(Literal::Bool(true)))
 }
 
-pub fn lte(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn lte(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     let previous = match &list[0] {
         Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
         Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
@@ -78,7 +81,7 @@ pub fn lte(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Literal(Literal::Bool(true)))
 }
 
-pub fn gt(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn gt(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     let previous = match &list[0] {
         Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
         Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
@@ -99,7 +102,7 @@ pub fn gt(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Literal(Literal::Bool(true)))
 }
 
-pub fn gte(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn gte(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     let previous = match &list[0] {
         Expr::Literal(Literal::Number(n)) => Literal::Number(*n),
         Expr::Literal(Literal::Float(f)) => Literal::Float(*f),
@@ -120,10 +123,10 @@ pub fn gte(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Literal(Literal::Bool(true)))
 }
 
-pub fn add(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+pub fn add(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     let mut result: i32 = 0;
     for val in list.iter() {
-        let val = eval(val, env);
+        let val = eval(val, env.clone());
         if val.is_err() { return val }
         let val = val.unwrap();
         match val {
@@ -136,10 +139,10 @@ pub fn add(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Literal(Literal::Number(result)))
 }
 
-pub fn mul(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+pub fn mul(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     let mut result: i32 = 1;
     for val in list.iter() {
-        let val = eval(val, env);
+        let val = eval(val, env.clone());
         if val.is_err() { return val }
         let val = val.unwrap();
         match val {
@@ -152,11 +155,11 @@ pub fn mul(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Literal(Literal::Number(result)))
 }
 
-pub fn sub(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+pub fn sub(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.is_empty() { return Err("- requires at least one argument") }
 
     let val = &list[0];
-    let val = eval(val, env);
+    let val = eval(val, env.clone());
     if val.is_err() { return val }
     let val = val.unwrap();
     let mut result = match val {
@@ -170,7 +173,7 @@ pub fn sub(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     }
 
     for val in list.iter().skip(1) {
-        let val = eval(val, env);
+        let val = eval(val, env.clone());
         if val.is_err() { return val }
         let val = val.unwrap();
         match val {
@@ -188,14 +191,14 @@ pub fn sub(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
  * List built-ins
  */
 
-pub fn list(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn list(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     let mut new_list = Vec::new();
     for val in list.iter() { new_list.push(val.clone()); }
 
     Ok(Expr::List(new_list))
 }
 
-pub fn car(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn car(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
     let val = &list[0];
@@ -211,7 +214,7 @@ pub fn car(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-pub fn cdr(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn cdr(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
     let val = &list[0];
@@ -232,7 +235,7 @@ pub fn cdr(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-pub fn cons(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn cons(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 2 { return Err("called with incorrect number of arguments") }
 
     let val = &list[0];
@@ -254,7 +257,7 @@ pub fn cons(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-pub fn append(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn append(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() < 2 { return Err("called with incorrect number of arguments") }
 
     let listval = &list[0];
@@ -274,7 +277,7 @@ pub fn append(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-pub fn length(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn length(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
     let listval = &list[0];
@@ -286,7 +289,7 @@ pub fn length(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Literal(Literal::Number(size)))
 }
 
-pub fn reverse(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn reverse(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
     let listval = &list[0];
@@ -307,7 +310,7 @@ pub fn reverse(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
  * Tests
  */
 
-pub fn equalp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn equalp(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 2 { return Err("called with incorrect number of arguments") }
 
     let lval = &list[0];
@@ -316,7 +319,7 @@ pub fn equalp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Literal(Literal::Bool(lval == rval)))
 }
 
-pub fn listp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn listp(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
     match &list[0] {
@@ -325,7 +328,7 @@ pub fn listp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-pub fn nullp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn nullp(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
     match &list[0] {
@@ -340,7 +343,7 @@ pub fn nullp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-pub fn procedurep(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn procedurep(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
     match &list[0] {
@@ -354,7 +357,7 @@ pub fn procedurep(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-pub fn numberp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn numberp(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
     match &list[0] {
@@ -364,7 +367,7 @@ pub fn numberp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-pub fn symbolp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn symbolp(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
     match &list[0] {
@@ -373,7 +376,7 @@ pub fn symbolp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-pub fn pairp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
+pub fn pairp(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
     match &list[0] {
@@ -394,7 +397,7 @@ pub fn pairp(list: &[Expr], _env: &mut Env) -> Result<Expr, &'static str> {
  * Other
  */
 
-pub fn apply(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+pub fn apply(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() < 2 { return Err("called with incorrect number of arguments") }
 
     let proc = &list[0];
@@ -414,7 +417,7 @@ pub fn apply(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     }
 }
 
-pub fn load(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+pub fn load(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("called with incorrect number of arguments") }
 
     let val = &list[0];
@@ -444,7 +447,7 @@ pub fn load(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     if result.is_ok() {
         let exprs = result.unwrap();
         for expr in exprs.iter() {
-            let eval_result = eval(expr, env);
+            let eval_result = eval(expr, env.clone());
             if eval_result.is_err() {
                 println!("{}", eval_result.unwrap_err());
             }
@@ -457,7 +460,7 @@ pub fn load(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Unspecified)
 }
 
-pub fn read(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+pub fn read(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 0 { return Err("input ports are not yet supported for read") }
 
     let mut line = String::new();
@@ -482,7 +485,7 @@ pub fn read(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     Err("read error")
 }
 
-pub fn display(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
+pub fn display(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("output ports are not yet supported for display") }
 
     let expr = &list[0];
