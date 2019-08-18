@@ -30,10 +30,10 @@ pub fn eval(program: &Expr, env: &mut Env) -> Result<Expr, &'static str> {
                                 args.push(result.unwrap());
                             }
 
-                            let var = env.get(atom.to_string());
+                            let var = env.get(&atom);
                             if var.is_none() { return Err("undefined variable"); }
                             let proc = var.unwrap();
-                            apply(proc.clone(), args, env)
+                            apply(&proc, args, env)
                         },
                     }
                 },
@@ -52,14 +52,14 @@ pub fn eval(program: &Expr, env: &mut Env) -> Result<Expr, &'static str> {
                         args.push(result.unwrap());
                     }
 
-                    apply(proc.unwrap(), args, env)
+                    apply(&proc.unwrap(), args, env)
                 }
                 _ => Err("not implemented")
             }
         },
 
         Expr::Var(atom) => {
-            let var = env.get(atom.to_string());
+            let var = env.get(&atom);
             match var {
                 Some(val) => Ok(val.clone()),
                 None => {
@@ -229,7 +229,7 @@ fn cond(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
     Ok(Expr::Unspecified)
 }
 
-pub fn apply(proc: Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
+pub fn apply(proc: &Expr, args: Vec<Expr>, env: &mut Env) -> Result<Expr, &'static str> {
     match proc {
         Expr::Lambda(parms, body) => {
             if parms.len() != args.len() { return Err("applied to incorrect number of args") }

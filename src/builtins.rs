@@ -408,7 +408,7 @@ pub fn apply(list: &[Expr], env: &mut Env) -> Result<Expr, &'static str> {
 
     if let Expr::List(l) = arg {
         objlist.append(&mut l.clone());
-        eval::apply(proc.clone(), objlist, env)
+        eval::apply(proc, objlist, env)
     } else {
         Err("apply expecting a list")
     }

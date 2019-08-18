@@ -41,10 +41,13 @@ impl Env {
         Env { env }
     }
 
-    pub fn get(&self, key: String) -> Option<&Expr> {
+    pub fn get(&self, key: &String) -> Option<Expr> {
         for env in self.env.iter().rev() {
-            let result = env.get(&key);
-            if result.is_some() { return result; }
+            let result = env.get(key);
+            match result {
+                Some(result) => return Some(result.clone()),
+                None => continue,
+            };
         }
 
         None
