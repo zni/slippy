@@ -2,9 +2,9 @@
 name = "slippy"
 version = "0.1.0"
 authors = ["Matt Godshall <lifeinhex@gmail.com>"]
-edition = "2018"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rustyline = "5.0.0"
+rustyline = "17.0.0"

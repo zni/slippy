@@ -485,7 +485,7 @@ pub fn read(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> 
     Err("read error")
 }
 
-pub fn display(list: &[Expr], env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
+pub fn display(list: &[Expr], _env: Rc<RefCell<Env>>) -> Result<Expr, &'static str> {
     if list.len() != 1 { return Err("output ports are not yet supported for display") }
 
     let expr = &list[0];

@@ -9,7 +9,7 @@ use std::rc::Rc;
 
 extern crate rustyline;
 use rustyline::error::ReadlineError;
-use rustyline::Editor;
+use rustyline::DefaultEditor;
 
 use slippy::env::Env;
 use slippy::eval::eval;
@@ -43,13 +43,13 @@ fn run_file(file: &String) {
 }
 
 fn run_prompt() {
-    let mut rl = Editor::<()>::new();
+    let mut rl = DefaultEditor::new().expect("Failed to create readline prompt.");
     let env = Env::new();
     loop {
         let readline = rl.readline("slippy> ");
         match readline {
             Ok(line) => {
-                rl.add_history_entry(line.as_str());
+                let _ = rl.add_history_entry(line.as_str());
                 run(&line, env.clone());
             },
             Err(ReadlineError::Interrupted) => break,
